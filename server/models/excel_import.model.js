@@ -127,8 +127,8 @@ class ExcelImportModel {
 
     return {
       code: toString(row.CODIGO || row.Código || row.codigo),
-      identification_number: toString(row.CEDULA || row.Cédula || row.cedula),
-      complainant: toString(row.DENUNCIANTE || row.Denunciante || row.denunciante),
+      ci: toString(row.CEDULA || row.Cédula || row.cedula),
+      name: toString(row.DENUNCIANTE || row.Denunciante || row.denunciante),
       phone: toString(row.TELEFONO || row.Teléfono || row.telefono),
       state: toString(row.ESTADO || row.Estado || row.estado),
       municipality: toString(row.MUNICIPIO || row.Municipio || row.municipio),
@@ -154,7 +154,7 @@ class ExcelImportModel {
    * @throws {Error} Si faltan campos requeridos
    */
   validateRowData(data) {
-    const requiredFields = ['code', 'complainant', 'state', 'municipality'];
+    const requiredFields = ['code', 'name', 'state', 'municipality'];
     
     for (const field of requiredFields) {
       if (!data[field] || data[field].toString().trim() === '') {

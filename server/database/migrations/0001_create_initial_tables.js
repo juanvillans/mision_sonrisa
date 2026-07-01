@@ -1,17 +1,7 @@
 export async function up(knex) {
-  // Create trigger function for updated_at
-  await knex.raw(`
-      CREATE OR REPLACE FUNCTION update_updated_at_column()
-      RETURNS TRIGGER AS $$
-      BEGIN
-          NEW.updated_at = CURRENT_TIMESTAMP;
-          RETURN NEW;
-      END;
-      $$ language 'plpgsql';
-    `);
+  // ... trigger function ...
 
-  // Check if table exists before creating
-
+  // 1. Tabla users (sin cambios)
   const usersTableExists = await knex.schema.hasTable("users");
   if (!usersTableExists) {
     await knex.schema.createTable("users", (table) => {
@@ -21,133 +11,101 @@ export async function up(knex) {
       table.string("password");
       table.string("status").notNullable();
       table.boolean("is_admin").notNullable().defaultTo(false);
-      table
-        .timestamp("created_at")
-        .notNullable()
-        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-      table
-        .timestamp("updated_at")
-        .notNullable()
-        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
+      table.timestamp("created_at").notNullable().defaultTo(knex.raw("CURRENT_TIMESTAMP"));
+      table.timestamp("updated_at").notNullable().defaultTo(knex.raw("CURRENT_TIMESTAMP"));
     });
   }
 
-  {
-    /**
-  const examTypesExists = await knex.schema.hasTable("examination_types");
-  if (!examTypesExists) {
-    await knex.schema.createTable("examination_types", (table) => {
-      table.increments("id").primary();
-      table.string("name").notNullable().unique();
-      table.jsonb("tests").notNullable();
-      table.timestamp("created_at").defaultTo(knex.fn.now());
-      table.timestamp("updated_at").defaultTo(knex.fn.now());
-    });
-  }
-  
-  */
-  }
-
-  const statutesTableExists = await knex.schema.hasTable("statutes");
-  if (!statutesTableExists) {
-    await knex.schema.createTable("statutes", (table) => {
+  // 2. Tabla type_of_prosthesis (se mantiene)
+  const type_of_prosthesisTableExists = await knex.schema.hasTable("type_of_prosthesis");
+  if (!type_of_prosthesisTableExists) {
+    await knex.schema.createTable("type_of_prosthesis", (table) => {
       table.increments("id").primary();
       table.string("name").notNullable().unique();
       table.string("color").notNullable();
     });
   }
 
-  const medicalRequestsTableExists = await knex.schema.hasTable(
-    "medical_requests"
-  );
-  if (!medicalRequestsTableExists) {
-    await knex.schema.createTable("medical_requests", (table) => {
+  // 3. Tabla cases (sin statutes)
+  const casesTableExists = await knex.schema.hasTable("cases");
+  if (!casesTableExists) {
+    await knex.schema.createTable("cases", (table) => {
       table.increments("id").primary();
 
-      // Campos del Excel traducidos
-      table.string("code").notNullable(); // CODIGO
-      table.string("identification_number"); // CEDULA
-      table.string("complainant").notNullable(); // DENUNCIANTE
-      table.string("phone"); // TELEFONO
-      table.string("state").notNullable(); // ESTADO
-      table.string("municipality").notNullable(); // MUNICIPIO
-      table.string("parish"); // PARROQ
-      table.string("health_center"); // CENTRO DE SALUD
-      table.text("description"); // DESCRIP
-      table.string("subcategory"); // SUBCATEG
-      table.string("extended_category"); // EXTCATEG
-      table.text("request"); // SOLICITUD
-      table.text("requirement"); // REQUERIMIENTO
-      table.timestamp("creation_date"); // FECHA CREACION
-      table.timestamp("status_date"); // FECHA STATUS
-      table.integer("statute_id").references("id").inTable("statutes");
+      // Campos del Excel
+      table.string("code").notNullable().unique();
+      table.string("name").notNullable();
+      table.string("ci");
+      
+      // ✅ ENUM para sexo
+      table.enu('sex', ['M', 'F'], {
+        useNative: true,
+        enumName: 'sex_enum'
+      });
+      
+      table.integer("age");
+      table.string("phone");
+      table.string("gmail");
+      table.string("address");
+      table.text("observation");
+      table.timestamp("creation_date");
+      
+      // ✅ ENUM para estatuto (en lugar de FK)
+      table.enu('statute', ['En proceso', 'Terminado', 'Entregado'], {
+        useNative: true,
+        enumName: 'statute_enum'
+      }).notNullable();
+      
+      // FK a type_of_prosthesis
+      table.integer("type_of_prosthesis_id")
+        .references("id")
+        .inTable("type_of_prosthesis");
 
-      // Campos de control
-      table.integer("import_batch_id");
-      table
-        .timestamp("created_at")
+      // Timestamps
+      table.timestamp("created_at")
         .notNullable()
         .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-      table
-        .timestamp("updated_at")
+      table.timestamp("updated_at")
         .notNullable()
         .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
 
       // Índices
-      table.index("code");
-      table.index("identification_number");
-      table.index("statute_id");
+      table.unique("code");
+      table.index("ci");
+      table.index("name");
+      table.index("statute"); // Índice para el ENUM
     });
   }
 
-  // Crear tabla para lotes de importación (opcional pero recomendado)
-  const importBatchesTableExists = await knex.schema.hasTable("import_batches");
-  if (!importBatchesTableExists) {
-    await knex.schema.createTable("import_batches", (table) => {
-      table.increments("id").primary();
-      table.string("filename").notNullable();
-      table.integer("total_records");
-      table.integer("imported_records");
-      table.integer("failed_records");
-      table.jsonb("errors");
-      table.string("status");
-      table.timestamp("completed_at"); // Campo para marcar la fecha de finalización del lote de importación (opcional)
-      table.integer("user_id").references("id").inTable("users").notNullable();
-      
-      table
-        .timestamp("created_at")
-        .notNullable()
-        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-        table
-        .timestamp("updated_at")
-        .notNullable()
-        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-        
-    });
-
-  }
-
-  
-
-  // Apply trigger to other tables
+  // Triggers
   await knex.raw(`
-      CREATE TRIGGER update_users_updated_at
-      BEFORE UPDATE ON users
-      FOR EACH ROW
-      EXECUTE FUNCTION update_updated_at_column();
-    `);
+    CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+  `);
+
+  await knex.raw(`
+    CREATE TRIGGER update_cases_updated_at
+    BEFORE UPDATE ON cases
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+  `);
 }
 
 export async function down(knex) {
-  // Eliminar triggers primero
+  // Eliminar triggers
   await knex.raw("DROP TRIGGER IF EXISTS update_users_updated_at ON users");
-
+  await knex.raw("DROP TRIGGER IF EXISTS update_cases_updated_at ON cases");
+  
   // Eliminar función
   await knex.raw("DROP FUNCTION IF EXISTS update_updated_at_column()");
-
-  // Eliminar tablas en orden correcto (por dependencias)
-  await knex.schema.dropTableIfExists("medical_requests");
-  await knex.schema.dropTableIfExists("import_batches");
-  await knex.schema.dropTableIfExists("statutes");
-
+  
+  // Eliminar tablas (orden correcto)
+  await knex.schema.dropTableIfExists("cases");
+  await knex.schema.dropTableIfExists("type_of_prosthesis");
+  
+  // Eliminar ENUMs (PostgreSQL)
+  await knex.raw("DROP TYPE IF EXISTS sex_enum");
+  await knex.raw("DROP TYPE IF EXISTS statute_enum");
 }

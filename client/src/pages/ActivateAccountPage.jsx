@@ -154,7 +154,7 @@ export default function ActivateAccountPage() {
       <div className="flex gap-3 items-center justify-between py-3 md:absolute w-full px-10">
         <div className="flex gap-3 items-center">
           <img src={logo1x10} className="w-10 md:w-16 h-max" alt=" logo" />
-          <span className="text-2xl font-exo2 font-bold text-color1">Casos 1x10</span>
+          <span className="text-2xl font-exo2 font-bold text-color1">Misión Sonrisa</span>
         </div>
         <img
           src={secretariaLogo}
@@ -163,9 +163,9 @@ export default function ActivateAccountPage() {
         />
       </div>
       {pathname === "/activar-cuenta" ? (
-        <title>Activar Cuenta - Casos 1x10</title>
+        <title>Activar Cuenta - Misión Sonrisa</title>
       ) : (
-        <title>Restablecer Contraseña - Casos 1x10</title>
+        <title>Restablecer Contraseña - Misión Sonrisa</title>
       )}
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">

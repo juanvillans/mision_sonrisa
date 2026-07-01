@@ -46,8 +46,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "Casos 1x10 ",
-        short_name: "Casos 1x10",
+        name: "Misión Sonrisa ",
+        short_name: "Misión Sonrisa",
         description: "Sistema de gestión de solicitudes médicas, para el puesto de comando de la Secretaria de Salud del estado Falcón",
         theme_color: "#011140",
         background_color: "#ffffff",

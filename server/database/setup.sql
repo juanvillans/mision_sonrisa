@@ -1,10 +1,10 @@
--- PostgreSQL Database Setup for Casos1x10
+-- PostgreSQL Database Setup for Misión Sonrisa
 -- Run this script to create the database and tables
 
 -- Create database (run this as postgres superuser)
--- CREATE DATABASE Casos1x10;
+-- CREATE DATABASE Misión Sonrisa;
 
--- Connect to Casos1x10 database and run the following:
+-- Connect to Misión Sonrisa database and run the following:
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (

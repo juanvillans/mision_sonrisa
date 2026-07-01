@@ -44,7 +44,7 @@ export default function LoginPageWithReusableForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-lg md:text-2xl font-bold mb-6 text-center">Casos1x10 Login</h1>
+        <h1 className="text-lg md:text-2xl font-bold mb-6 text-center">Misión Sonrisa Login</h1>
         
         <ReusableForm
           fields={loginFields}

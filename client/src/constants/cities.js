@@ -1,6 +1,6 @@
 /**
  * Lista de ciudades del estado Falcón, Venezuela
- * Usada en formularios de Casos 1x10 y censo
+ * Usada en formularios de Misión Sonrisa y censo
  */
 export const cities = [
   { value: "Coro", label: "Coro" },

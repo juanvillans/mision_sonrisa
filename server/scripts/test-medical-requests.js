@@ -11,7 +11,7 @@ async function testMedicalRequests() {
     console.log(`  First record:`, result1.data[0] ? {
       id: result1.data[0].id,
       code: result1.data[0].code,
-      complainant: result1.data[0].complainant,
+      name: result1.data[0].name,
       statute_name: result1.data[0].statute_name
     } : 'No records found');
     console.log('');
@@ -36,7 +36,7 @@ async function testMedicalRequests() {
     });
     console.log(`✓ Sorted by code (asc):`);
     result3.data.forEach(item => {
-      console.log(`  - ${item.code}: ${item.complainant}`);
+      console.log(`  - ${item.code}: ${item.name}`);
     });
     console.log('');
 
@@ -59,7 +59,7 @@ async function testMedicalRequests() {
       const singleRecord = await MedicalRequest.getById(firstId);
       console.log(`✓ Retrieved record with ID ${firstId}:`, {
         code: singleRecord.code,
-        complainant: singleRecord.complainant,
+        name: singleRecord.name,
         statute_name: singleRecord.statute_name
       });
       console.log('');

@@ -60,7 +60,7 @@ export default function SideNav(props) {
           />
           
             {/* <p className={ props.isSidebarOpen ? "block duration-300  absolute -bottom-1 right-3 font-semibold self-end opacity-100 font-exo2" : "opacity-0 absolute font-exo2"}>
-              Casos 1x10
+              Misión Sonrisa
             </p> */}
         </div>
       </Link>

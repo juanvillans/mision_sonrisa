@@ -5,8 +5,8 @@ class MedicalRequest {
   constructor(data) {
     this.id = data.id;
     this.code = data.code;
-    this.identification_number = data.identification_number;
-    this.complainant = data.complainant;
+    this.ci = data.ci;
+    this.name = data.name;
     this.phone = data.phone;
     this.state = data.state;
     this.municipality = data.municipality;
@@ -63,8 +63,8 @@ class MedicalRequest {
       const searchTerm = `%${search.trim()}%`;
       query = query.where(function() {
         this.where('medical_requests.code', 'ilike', searchTerm)
-          .orWhere('medical_requests.identification_number', 'ilike', searchTerm)
-          .orWhere('medical_requests.complainant', 'ilike', searchTerm)
+          .orWhere('medical_requests.ci', 'ilike', searchTerm)
+          .orWhere('medical_requests.name', 'ilike', searchTerm)
           .orWhere('medical_requests.phone', 'ilike', searchTerm)
           .orWhere('medical_requests.state', 'ilike', searchTerm)
           .orWhere('medical_requests.municipality', 'ilike', searchTerm)
@@ -101,8 +101,8 @@ class MedicalRequest {
     const fieldMapping = {
       id: 'medical_requests.id',
       code: 'medical_requests.code',
-      identification_number: 'medical_requests.identification_number',
-      complainant: 'medical_requests.complainant',
+      ci: 'medical_requests.ci',
+      name: 'medical_requests.name',
       phone: 'medical_requests.phone',
       state: 'medical_requests.state',
       municipality: 'medical_requests.municipality',

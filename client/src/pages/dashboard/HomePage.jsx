@@ -125,7 +125,7 @@ export default function HomePage() {
 
   return (
     <>
-      <title>Dashboard - Casos 1x10</title>
+      <title>Dashboard - Misión Sonrisa</title>
       <div>
         <h1 className="text-lg md:text-2xl font-bold mb-4 ">Dashboard</h1>
         <div className="flex flex-col md:flex-row gap-5">

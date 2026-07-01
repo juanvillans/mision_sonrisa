@@ -85,7 +85,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <title>Iniciar Sesión - Casos 1x10</title>
+      <title>Iniciar Sesión - Misión Sonrisa</title>
       <div className="min-h-screen w-full relative md:flex bg-white bg-cover bg-center overflow-hidden">
         <img
           src={background}
@@ -111,7 +111,7 @@ export default function LoginPage() {
             Puesto de Comando
           </h1>
           <p className="fadeInUp fadeInUp-delay-0-5  text-dark text-xs md:text-md text-center">
-            Sistema de Casos 1x10 de la Secretaria de Salud del estado Falcón
+            Sistema de Misión Sonrisa de la Secretaria de Salud del estado Falcón
           </p>
 
           <form onSubmit={handleSubmit} className="fadeInUp ">

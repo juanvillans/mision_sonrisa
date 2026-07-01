@@ -196,14 +196,14 @@ export default function CasosPage() {
       className: "col-span-2",
     },
     {
-      name: "complainant",
+      name: "name",
       label: "Denunciante",
       type: "text",
       required: true,
       className: "col-span-2",
     },
     {
-      name: "identification_number",
+      name: "ci",
       label: "CI",
       type: "text",
       required: true,
@@ -288,6 +288,14 @@ export default function CasosPage() {
       options: statutes,
       className: "col-span-2",
     },
+    {
+      name: "type_of_prosthesis_id",
+      label: "Tipo de Prótesis",
+      type: "select",
+      required: true,
+      options: typeOfProsthesis,
+      className: "col-span-2",
+    },
   ]);
 
   const [submitString, setSubmitString] = useState("Registrar");
@@ -359,14 +367,14 @@ export default function CasosPage() {
         enableSorting: true,
       },
       {
-        accessorKey: "complainant",
+        accessorKey: "name",
         header: "Denunciante",
         size: 200,
         enableColumnFilter: true,
         enableSorting: true,
       },
       {
-        accessorKey: "identification_number",
+        accessorKey: "ci",
         header: "CI",
         size: 100,
         enableColumnFilter: true,

@@ -96,7 +96,7 @@ SHOW SERVER_ENCODING;
 SHOW CLIENT_ENCODING;
 
 -- Ver datos con caracteres especiales
-SELECT id, code, description, complainant 
+SELECT id, code, description, name 
 FROM medical_requests 
 WHERE description LIKE '%ó%' 
    OR description LIKE '%á%'

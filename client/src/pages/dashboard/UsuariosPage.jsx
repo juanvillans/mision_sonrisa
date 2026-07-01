@@ -178,7 +178,7 @@ export default function UsuariosPage() {
 
   return (
     <>
-      <title>Gestión de Usuarios - Casos 1x10</title>
+      <title>Gestión de Usuarios - Misión Sonrisa</title>
       <div style={{ height: 580, width: "100%" }}>
         <div className="md:flex justify-between items-center mb-4">
           <h1 className="text-lg md:text-2xl font-bold mb-2 md:mb-0">Gestión de Usuarios</h1>

@@ -39,9 +39,9 @@ export const sendInvitationEmail = function (recipient, invitationToken, url) {
     const activationLink = `${url}/activar-cuenta?token=${invitationToken}`;
     const mailOptions = {
         to: recipient.email,
-        subject: "Bienvenido a casos 1x10 - Activa tu cuenta",
+        subject: "Bienvenido a Misión Sonrisa - Activa tu cuenta",
         html: `
-            <img src="${process.env.APP_URL }/1x10.png}" alt="casos 1x10" />
+            <img src="${process.env.APP_URL }/1x10.png}" alt="Misión Sonrisa" />
             <h3>Bienvenido a nuestra plataforma, ${recipient.first_name}!</h3>
             <p>Tu cuenta ha sido creada. Por favor haz clic en el enlace a continuación para establecer tu contraseña y activar tu cuenta:</p>
             <p><a href="${activationLink}">Activar cuenta</a></p>
@@ -58,9 +58,9 @@ export const sendPasswordResetEmail = function (recipient, resetToken, url) {
 
     const mailOptions = {
         to: recipient.email,
-        subject: "Casos1x10 - Solicitud de restablecimiento de contraseña",
+        subject: "Misión Sonrisa - Solicitud de restablecimiento de contraseña",
         html: `
-            <h3>Restablecimiento de Contraseña en Casos1x10</h3>
+            <h3>Restablecimiento de Contraseña en Misión Sonrisa</h3>
             <p>Has solicitado restablecer tu contraseña. Por favor haz clic en el enlace a continuación para restablecer tu contraseña:</p>
         <p><a href="${resetLink}">Restablecer contraseña</a></p>
             <p>El enlace caducará en 1 hora.</p>

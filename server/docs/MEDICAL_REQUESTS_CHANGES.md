@@ -13,7 +13,7 @@ Se ha optimizado completamente el sistema de gestión de solicitudes médicas (c
 #### ✨ Nuevo Método `getPaginated()`
 - **Paginación avanzada**: Control total sobre página y límite de registros
 - **Búsqueda global**: Busca en múltiples campos simultáneamente
-  - code, identification_number, complainant, phone
+  - code, ci, name, phone
   - state, municipality, parish, health_center
   - description, subcategory, extended_category
   - statute_name (campo relacionado)

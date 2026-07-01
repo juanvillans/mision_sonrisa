@@ -35,14 +35,14 @@ Retrieve a paginated list of medical requests with optional filtering, sorting, 
 | `filters` | JSON string | {} | Column-specific filters |
 
 #### Sortable Fields
-- `id`, `code`, `identification_number`, `complainant`, `phone`
+- `id`, `code`, `ci`, `name`, `phone`
 - `state`, `municipality`, `parish`, `health_center`
 - `subcategory`, `extended_category`, `statute_name`, `statute_id`
 - `creation_date`, `status_date`, `created_at`, `updated_at`
 
 #### Searchable Fields (Global Search)
 The global search searches across:
-- code, identification_number, complainant, phone
+- code, ci, name, phone
 - state, municipality, parish, health_center
 - description, subcategory, extended_category
 - statute_name
@@ -61,8 +61,8 @@ GET /api/medical-requests?page=1&limit=25&sortField=code&sortOrder=asc&search=zu
       {
         "id": 1,
         "code": "CASO-001",
-        "identification_number": "12345678",
-        "complainant": "Juan Pérez",
+        "ci": "12345678",
+        "name": "Juan Pérez",
         "phone": "0414-1234567",
         "state": "Zulia",
         "municipality": "Maracaibo",
@@ -121,8 +121,8 @@ Create a new medical request.
 ```json
 {
   "code": "CASO-002",
-  "identification_number": "87654321",
-  "complainant": "María González",
+  "ci": "87654321",
+  "name": "María González",
   "phone": "0424-9876543",
   "state": "Miranda",
   "municipality": "Chacao",
