@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useFeedback } from "../context/FeedbackContext";
 import { authAPI } from "../services/api";
-import logo1x10 from "../assets/1x10.png";
-import background from "../assets/background.webp";
+import misionSonrisaLogo from "../assets/misionSonrisaLogo.png";
+import tooth from "../assets/tooth.jpg";
 import secretariaLogo from "../assets/secretaria_logo.png";
 import { Icon } from "@iconify/react";
 import cintilloCorto from "../assets/cintilloCorto.png";
@@ -88,28 +88,26 @@ export default function LoginPage() {
       <title>Iniciar Sesión - Misión Sonrisa</title>
       <div className="min-h-screen w-full relative md:flex bg-white bg-cover bg-center overflow-hidden">
         <img
-          src={background}
+          src={tooth}
           alt="lab"
-          className=" h-screen w-10/12 flex-1  object-cover "
+          className=" h-screen w-full flex-1 object-bottom object-cover "
         />
         <div
-          className="  w-[300px] md:min-w-[400px] md:w-[450px]    pb-3 top-24 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
+          className=" absolute w-[300px] md:min-w-[400px] md:w-[450px]    pb-3 top-24 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
           style={{
             background: "rgba(255, 255, 255, 0.2)",
             backdropFilter: "blur(5px)",
             WebkitBackdropFilter: "blur(35px)",
           }}
         >
-          <div className="mx-auto bg-white fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-16 h-16 md:w-20 md:h-20 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
+          <div className="mx-auto  fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-20 h-20 md:w-32 md:h-2w-32 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
             <img
-              src={logo1x10}
+              src={misionSonrisaLogo}
               className="logo inline-block mx-auto  "
               alt="logo del sistema"
             />
           </div>
-          <h1 className="fadeInUp mb-4 fadeInUp-delay-0-5 text-lg md:text-2xl font-bold  mt-4 text-center ">
-            Puesto de Comando
-          </h1>
+         
           <p className="fadeInUp fadeInUp-delay-0-5  text-dark text-xs md:text-md text-center">
             Sistema de Misión Sonrisa de la Secretaria de Salud del estado Falcón
           </p>
