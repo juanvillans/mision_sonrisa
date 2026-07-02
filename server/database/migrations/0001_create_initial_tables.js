@@ -11,18 +11,14 @@ export async function up(knex) {
       table.string("password");
       table.string("status").notNullable();
       table.boolean("is_admin").notNullable().defaultTo(false);
-      table.timestamp("created_at").notNullable().defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-      table.timestamp("updated_at").notNullable().defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-    });
-  }
-
-  // 2. Tabla type_of_prosthesis (se mantiene)
-  const type_of_prosthesisTableExists = await knex.schema.hasTable("type_of_prosthesis");
-  if (!type_of_prosthesisTableExists) {
-    await knex.schema.createTable("type_of_prosthesis", (table) => {
-      table.increments("id").primary();
-      table.string("name").notNullable().unique();
-      table.string("color").notNullable();
+      table
+        .timestamp("created_at")
+        .notNullable()
+        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
+      table
+        .timestamp("updated_at")
+        .notNullable()
+        .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
     });
   }
 
@@ -36,38 +32,81 @@ export async function up(knex) {
       table.string("code").notNullable().unique();
       table.string("name").notNullable();
       table.string("ci");
-      
-      // ✅ ENUM para sexo
-      table.enu('sex', ['M', 'F'], {
+
+      table.enu("Origin", ["Misión sonrisa", "1x10"], {
         useNative: true,
-        enumName: 'sex_enum'
+        enumName: "origin_enum",
       });
-      
+
+      table.enu("sex", ["M", "F"], {
+        useNative: true,
+        enumName: "sex_enum",
+      });
+
+      table.date("birth_date");
       table.integer("age");
       table.string("phone");
-      table.string("gmail");
-      table.string("address");
-      table.text("observation");
-      table.timestamp("creation_date");
-      
-      // ✅ ENUM para estatuto (en lugar de FK)
-      table.enu('statute', ['En proceso', 'Terminado', 'Entregado'], {
-        useNative: true,
-        enumName: 'statute_enum'
-      }).notNullable();
-      
-      // FK a type_of_prosthesis
-      table.integer("type_of_prosthesis_id")
-        .references("id")
-        .inTable("type_of_prosthesis");
+      table.string("email");
+      table.text("address");
+      table
+        .enu(
+          "type_of_prosthesis",
+          [
+            "Total",
+            "Total Bimaxilar",
+            "Total Superior",
+            "Total Inferior",
+            "Parcial",
+            "Parcial Bimaxilar",
+            "Parcial Superior",
+            "Parcial Inferior",
+          ],
+          {
+            useNative: true,
+            enumName: "prosthesis_type_enum",
+          },
+        )
+        .notNullable();
+
+      table.string("tooth_color");
+
+        
+      table.date("creation_date");
+      table.integer("number_of_models");
+
+      table.boolean("is_tdi_completed").defaultTo(false);
+      table.date("tdi_date"); 
+      table.integer("number_of_tdi");
+
+      table.boolean("model_only").defaultTo(false);
+      table.boolean("model_rodete").defaultTo(false);
+
+      table.boolean("is_rdm_completed").defaultTo(false);
+      table.date("rdm_date"); 
+
+      table.boolean("is_threaded_completed").defaultTo(false);
+      table.date("threaded_date"); 
+
+      table.boolean("is_polished_completed").defaultTo(false);
+      table.date("polished_date"); 
+
+      table
+        .enu("statute", ["En proceso", "Terminado", "Entregado"], {
+          useNative: true,
+          enumName: "statute_enum",
+        })
+        .notNullable();
 
       // Timestamps
-      table.timestamp("created_at")
+      table
+        .timestamp("created_at")
         .notNullable()
         .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
-      table.timestamp("updated_at")
+      table
+        .timestamp("updated_at")
         .notNullable()
         .defaultTo(knex.raw("CURRENT_TIMESTAMP"));
+      table.text("observation");
 
       // Índices
       table.unique("code");
@@ -97,15 +136,16 @@ export async function down(knex) {
   // Eliminar triggers
   await knex.raw("DROP TRIGGER IF EXISTS update_users_updated_at ON users");
   await knex.raw("DROP TRIGGER IF EXISTS update_cases_updated_at ON cases");
-  
+
   // Eliminar función
   await knex.raw("DROP FUNCTION IF EXISTS update_updated_at_column()");
-  
+
   // Eliminar tablas (orden correcto)
   await knex.schema.dropTableIfExists("cases");
-  await knex.schema.dropTableIfExists("type_of_prosthesis");
-  
+
   // Eliminar ENUMs (PostgreSQL)
+
   await knex.raw("DROP TYPE IF EXISTS sex_enum");
+  await knex.raw("DROP TYPE IF EXISTS origin_enum");
   await knex.raw("DROP TYPE IF EXISTS statute_enum");
 }
