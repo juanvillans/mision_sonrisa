@@ -109,12 +109,23 @@ export async function up(knex) {
       table.text("observation");
 
       // Índices
-      table.unique("code");
+      table.index("code");
       table.index("ci");
       table.index("name");
       table.index("statute"); // Índice para el ENUM
     });
   }
+
+  // Trigger function to update updated_at
+  await knex.raw(`
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = CURRENT_TIMESTAMP;
+      RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+  `);
 
   // Triggers
   await knex.raw(`

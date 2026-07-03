@@ -109,7 +109,7 @@ export default function LoginPage() {
           </div>
          
           <p className="fadeInUp fadeInUp-delay-0-5  text-dark text-xs md:text-md text-center">
-            Sistema de Misión Sonrisa de la Secretaria de Salud del estado Falcón
+            Sistema de Misión Sonrisa de la Secretaria de Salud del estado Falcón, para gestionar los casos de protesis dentales de los pacientes. Ingrese sus credenciales para acceder al sistema.
           </p>
 
           <form onSubmit={handleSubmit} className="fadeInUp ">

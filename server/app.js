@@ -12,7 +12,7 @@ import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 // import originsRouter from "./routers/origins.routes.js";
 import excelImportRouter from "./routers/excel_import.routers.js";
 import statutesRouter from "./routers/statutes.routers.js";
-import medicalRequestsRouter from "./routers/medical_requests.routers.js";
+import medicalRequestsRouter from "./routers/cases.routers.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
