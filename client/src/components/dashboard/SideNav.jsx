@@ -13,7 +13,7 @@ const links = [
     permission: true,
     name: "Casos",
     href: "/dashboard/casos",
-    icon: "mdi:patient-outline",
+    icon: "streamline-ultimate:dentistry-tooth-jaws",
   },
 
   {

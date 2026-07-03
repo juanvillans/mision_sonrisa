@@ -40,7 +40,9 @@ body {
 /* Remove shadow from MaterialReactTable paper */
 .MuiPaper-root {
   --paper-shadow: none !important;
-  box-shadow: 8px 8px 30px #e0e0e0, -8px -8px 50px #ffffff !important;
+  box-shadow:
+    8px 8px 30px #e0e0e0,
+    -8px -8px 50px #ffffff !important;
   border-radius: 20px !important;
 }
 td.MuiTableCell-root {
@@ -49,7 +51,9 @@ td.MuiTableCell-root {
 .neuphormism {
   border-radius: 40px;
   background: #f7f7f7;
-  box-shadow: 12px 12px 25px #d3d3d3ec, -12px -12px 15px #ffffff;
+  box-shadow:
+    12px 12px 25px #d3d3d3ec,
+    -12px -12px 15px #ffffff;
 }
 
 h1,
@@ -113,7 +117,9 @@ h5 {
 /* AG Grid - Remove border and add light shadow */
 .ag-grid-no-border .ag-root-wrapper {
   border: none !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.03) !important;
   border-radius: 8px !important;
 }
 
@@ -134,8 +140,8 @@ h5 {
 }
 /* From Uiverse.io by virus231 */
 .button {
-  background: linear-gradient(140.14deg, #59d6df 15.05%, #0554af 114.99%)
-      padding-box,
+  background:
+    linear-gradient(140.14deg, #59d6df 15.05%, #0554af 114.99%) padding-box,
     linear-gradient(142.51deg, #59d6df 8.65%, #0554af 88.82%) border-box;
   border-radius: 7px;
   border: 2px solid transparent;
@@ -370,4 +376,11 @@ h5 {
   animation-delay: 0.2s;
   /* Necesitas que esté inicialmente invisible mientras espera */
   opacity: 0;
+}
+.login-form {
+  border-radius: 50px;
+  background: #c4d4e7;
+  box-shadow:
+    20px 20px 60px #a7b4c4,
+    -20px -20px 60px #e1f4ff;
 }

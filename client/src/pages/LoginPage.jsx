@@ -34,7 +34,7 @@ export default function LoginPage() {
   }, [user, authLoading, navigate]);
 
   const handleForgotPsw = async (e) => {
-    setLoadingReset(true)
+    setLoadingReset(true);
     if (!email) {
       showError("Por favor ingrese su correo electrónico");
       return;
@@ -58,11 +58,11 @@ export default function LoginPage() {
       const res = await authAPI.login({ email, password });
 
       // Login successful
-      if (res.status === "success" ) {
+      if (res.status === "success") {
         console.log(res);
 
         login(res.data.user, res.data.token);
-      } 
+      }
     } catch (err) {
       showError(err.message);
       console.log(err);
@@ -86,6 +86,7 @@ export default function LoginPage() {
   return (
     <>
       <title>Iniciar Sesión - Misión Sonrisa</title>
+
       <div className="min-h-screen w-full relative md:flex bg-white bg-cover bg-center overflow-hidden">
         <img
           src={tooth}
@@ -93,26 +94,12 @@ export default function LoginPage() {
           className=" h-screen w-full flex-1 object-bottom object-cover "
         />
         <div
-          className=" absolute w-[300px] md:min-w-[400px] md:w-[450px]    pb-3 top-24 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
-          style={{
-            background: "rgba(255, 255, 255, 0.2)",
-            backdropFilter: "blur(5px)",
-            WebkitBackdropFilter: "blur(35px)",
-          }}
+          className="login-form  absolute w-[300px] md:min-w-[400px] md:w-[450px] left-10   pb-3 top-24 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
+          style={{}}
         >
-          <div className="mx-auto  fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-20 h-20 md:w-32 md:h-2w-32 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
-            <img
-              src={misionSonrisaLogo}
-              className="logo inline-block mx-auto  "
-              alt="logo del sistema"
-            />
-          </div>
          
-          <p className="fadeInUp fadeInUp-delay-0-5  text-dark text-xs md:text-md text-center">
-            Sistema de Misión Sonrisa de la Secretaria de Salud del estado Falcón, para gestionar los casos de protesis dentales de los pacientes. Ingrese sus credenciales para acceder al sistema.
-          </p>
 
-          <form onSubmit={handleSubmit} className="fadeInUp ">
+          <form onSubmit={handleSubmit} className="fadeInUp  ">
             <div className="mb-4 mt-4  md:mt-10 ">
               <label className="block  text-sm  mb-1" htmlFor="email">
                 Email
@@ -122,7 +109,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setemail(e.target.value)}
-                className="w-full border-gray-200 border  text-gray-800 px-2 py-2 text-sm sm:px-3 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-200 border-gray-200 border  text-gray-800 px-2 py-2 text-sm sm:px-3 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -136,7 +123,7 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border-gray-200 border  text-gray-800 px-2 py-2 text-sm sm:px-3 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                className="w-full bg-gray-200 border-gray-200 border  text-gray-800 px-2 py-2 text-sm sm:px-3 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                 required
               />
               {showPassword ? (
@@ -156,40 +143,47 @@ export default function LoginPage() {
             <div className="flex justify-end mb-6">
               {loadingReset ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mx-auto"></div>
-              ) : 
-              <button
-                type="button"
-                onClick={handleForgotPsw}
-                className="text-sm hover:underline"
-              >
-                ¿Olvidaste tu contraseña?
-              </button>
-              
-              }
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleForgotPsw}
+                  className="text-sm hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              )}
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mb-4 md:mb-0 bg-color1 text-color4 font-bold py-2 px-4 rounded  hover:bg-color1 hover:text-color3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opaemailty-50"
+              className="group border-dark group-hover:before:duration-500 group-hover:after:duration-500 after:duration-500 hover:border-rose-300 hover:before:[box-shadow:_20px_20px_20px_30px_#a21caf] duration-500 before:duration-500 hover:duration-500 underline underline-offset-2 hover:after:-right-8 hover:before:right-12 hover:before:-bottom-8 hover:before:blur hover:underline hover:underline-offset-4  origin-left hover:decoration-2 hover:text-rose-300 relative  h-16 w-full border text-left p-3 text-dark text-base font-bold rounded-lg  overflow-hidden  before:absolute before:w-12 before:h-12 before:content[''] before:right-1 before:top-1 before:z-10 before:bg-violet-500 before:rounded-full before:blur-lg  after:absolute after:z-10 after:w-20 after:h-20 after:content['']  after:bg-rose-300 after:right-8 after:top-3 after:rounded-full after:blur-lg"
             >
               {loading ? "Ingresando..." : "INGRESAR"}
             </button>
           </form>
         </div>
       </div>
-      <header className="flex gap-1 md:gap-4 flex-col md:flex-row items-center px-10 text-color1 text-sm z-40 w-full relative md:absolute  top-0 text-center -100 py-2 lg:py-5">
-        <img
-          src={secretariaLogo}
-          alt="secretariaLogo"
-          className="w-12 h-12  aspect-square  "
-        />
-        <img
-          src={cintilloCorto}
-          alt=""
-          className="max-w-[240px] h-min rounded-xl "
-        />
-
+      <header className="flex justify-between gap-1 md:gap-4 flex-col md:flex-row items-center px-10 text-color1 text-sm z-40 w-full relative md:absolute  top-0 text-center -100 py-2 lg:py-5">
+         <div className="  fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-20 h-20 md:w-32 md:h-2w-32 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
+            <img
+              src={misionSonrisaLogo}
+              className="logo inline-block mx-auto  "
+              alt="logo del sistema"
+            />
+          </div>
+          <div className="flex gap-2 items-center justify-center fadeInUp-delay-2 fadeInUp">
+            <img
+              src={secretariaLogo}
+              alt="secretariaLogo"
+              className="w-12 h-12  aspect-square  "
+            />
+            <img
+              src={cintilloCorto}
+              alt=""
+              className="max-w-[240px] h-min rounded-xl "
+            />
+          </div>
       </header>
       <footer className="flex gap-1 flex-col md:flex-row items-center px-10 justify-between text-gray-50 text-sm z-40 w-full relative md:absolute bottom-0 text-center -100 py-1">
         <p className="text-xs">

@@ -108,15 +108,37 @@ export const excelImportAPI = {
 };
 
 export const casesAPI = {
-  getCases: (params) => api.get("/medical-requests", { params }),
-  createCase: (caseData) => api.post("/medical-requests", caseData),
-  updateCase: (id, caseData) => api.put(`/medical-requests/${id}`, caseData),
-  deleteCase: (id) => api.delete(`/medical-requests/${id}`),
+  // Obtener todos los casos con paginación, filtros y búsqueda
+  getCases: (params) => api.get("/cases", { params }),
+  
+  // Obtener un caso por ID
+  getCaseById: (id) => api.get(`/cases/${id}`),
+  
+  // Crear un nuevo caso
+  createCase: (caseData) => api.post("/cases", caseData),
+  
+  // Actualizar un caso existente
+  updateCase: (id, caseData) => api.put(`/cases/${id}`, caseData),
+  
+  // Eliminar un caso
+  deleteCase: (id) => api.delete(`/cases/${id}`),
+  
+  // Obtener estadísticas para el dashboard
+  getStats: () => api.get("/cases/stats"),
+  
+  // Obtener todos los orígenes únicos
+  getOrigins: () => api.get("/cases/origins"),
+  
+  // Obtener todos los tipos de prótesis únicos
+  getProsthesisTypes: () => api.get("/cases/prosthesis-types"),
+  
+  // Exportar casos (con filtros opcionales)
+  exportCases: (params) => api.get("/cases/export", { params }),
+  
+  // Actualización masiva de estados
+  bulkUpdateStatus: (data) => api.post("/cases/bulk-update", data),
 };
 
-export const statutesAPI = {
-  getStatutes: () => api.get("/statutes"),
-};
 // export const payrollAPI = {
 //   getWorkers: (params) => api.get("/admin/pay-sheets", { params }),
 //   createWorker: (workerData) => api.post("/admin/pay-sheets", workerData, { headers: { "Content-Type": "multipart/form-data" } }),

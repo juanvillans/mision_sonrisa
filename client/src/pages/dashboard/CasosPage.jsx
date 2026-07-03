@@ -5,10 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-
-import { API_URL } from "../../config/env.js";
-
-import { casesAPI, statutesAPI } from "../../services/api.js";
+import { casesAPI } from "../../services/api.js";
 import { Icon } from "@iconify/react";
 import Modal from "../../components/Modal.jsx";
 import FuturisticButton from "../../components/FuturisticButton.jsx";
@@ -17,271 +14,195 @@ import { CircularProgress } from "@mui/material";
 import { useFeedback } from "../../context/FeedbackContext.jsx";
 import { MaterialReactTable } from "material-react-table";
 import debounce from "lodash.debounce";
-import axios from "axios";
 import { useAuth } from "../../context/AuthContext.jsx";
-import withoutPhoto from "../../assets/withoutPhoto.png";
-import { cities } from "../../constants/cities.js";
-import { Link } from "react-router-dom";
+
+// Constantes para los ENUMs
+const ORIGIN_OPTIONS = [
+  { value: "Misión sonrisa", label: "Misión sonrisa" },
+  { value: "1x10", label: "1x10" },
+];
+
+const SEX_OPTIONS = [
+  { value: "M", label: "Masculino" },
+  { value: "F", label: "Femenino" },
+];
+
+const PROSTHESIS_TYPE_OPTIONS = [
+  { value: "Total", label: "Total" },
+  { value: "Total Bimaxilar", label: "Total Bimaxilar" },
+  { value: "Total Superior", label: "Total Superior" },
+  { value: "Total Inferior", label: "Total Inferior" },
+  { value: "Parcial", label: "Parcial" },
+  { value: "Parcial Bimaxilar", label: "Parcial Bimaxilar" },
+  { value: "Parcial Superior", label: "Parcial Superior" },
+  { value: "Parcial Inferior", label: "Parcial Inferior" },
+];
+
+const STATUTE_OPTIONS = [
+  { value: "En proceso", label: "En proceso", color: "#f59e0b" }, // Amarillo
+  { value: "Terminado", label: "Terminado", color: "#10b981" }, // Verde
+  { value: "Entregado", label: "Entregado", color: "#3b82f6" }, // Azul
+];
+
+const defaultFormData = {
+  code: "",
+  name: "",
+  ci: "",
+  origin: "",
+  sex: "",
+  birth_date: "",
+  age: "",
+  phone: "",
+  email: "",
+  address: "",
+  type_of_prosthesis: "",
+  tooth_color: "",
+  creation_date: "",
+  number_of_models: 0,
+  is_tdi_completed: false,
+  tdi_date: "",
+  number_of_tdi: 0,
+  model_only: false,
+  model_rodete: false,
+  is_rdm_completed: false,
+  rdm_date: "",
+  is_threaded_completed: false,
+  threaded_date: "",
+  is_polished_completed: false,
+  polished_date: "",
+  statute: "En proceso",
+  observation: "",
+};
 
 let isThereLocalStorageFormData = localStorage.getItem("formData")
   ? true
   : false;
-// Memoized component for test fields to prevent unnecessary re-renders
-const MemoizedTestField = React.memo(
-  ({ field, value, onChange, testKey, fieldName, id, multiline = false }) => {
-    const handleChange = useCallback(
-      (e) => {
-        onChange(testKey, e);
-      },
-      [onChange, testKey],
-    );
-
-    return (
-      <FormField
-        key={fieldName + "_" + testKey}
-        {...field}
-        examination_type_id={testKey}
-        value={value || ""}
-        onChange={handleChange}
-        id={id}
-        multiline={multiline}
-      />
-    );
-  },
-  // Custom comparison function for better memoization
-  (prevProps, nextProps) => {
-    return (
-      prevProps.value === nextProps.value &&
-      prevProps.testKey === nextProps.testKey &&
-      prevProps.fieldName === nextProps.fieldName &&
-      JSON.stringify(prevProps.field) === JSON.stringify(nextProps.field)
-    );
-  },
-);
 
 export default function CasosPage() {
   const [loading, setLoading] = useState(false);
   const { showError, showSuccess, showInfo } = useFeedback();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [PDFmodal, setPDFmodal] = useState(false);
-  const [isCensusModalOpen, setIsCensusModalOpen] = useState(false);
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [PDFdata, setPDFdata] = useState({});
-  const [resultsToken, setResultsToken] = useState(null);
   const [origins, setOrigins] = useState([]);
-  const [loadingMessage, setLoadingMessage] = useState(false);
-  const [printButtonId, setPrintButtonId] = useState(null);
-  const [administrativeLocations, setAdministrativeLocations] = useState([]);
-  const [typePaySheets, setTypePaySheets] = useState([]);
+  const [prosthesisTypes, setProsthesisTypes] = useState([]);
   const [statutes, setStatutes] = useState([]);
   const { user } = useAuth();
 
+  // Fetch initial data
   const fetchInitialData = useCallback(async () => {
     try {
-      const statutesRes = await statutesAPI.getStatutes();
-      const formattedStatutes = statutesRes.data.statutes.map((statute) => ({
-        value: statute.id,
-        label: statute.name,
-        color: statute.color,
-      }));
-      setStatutes(formattedStatutes);
-      console.log(statutesRes);
-      // const administrative_locations = await asicAPI.getASIC();
-      // // Transform API response to match select component format { value, label }
-      // const formattedLocations = administrative_locations.map((location) => ({
-      //   value: location.id,
-      //   label: location.name,
-      // }));
-      // setAdministrativeLocations(formattedLocations);
+      // Obtener orígenes únicos
+      const originsRes = await casesAPI.getOrigins();
+      setOrigins(originsRes.data.map(origin => ({ value: origin, label: origin })));
 
-      // const type_pay_sheets = await typePaySheetsAPI.getPaySheets();
-      // const formattedTypePaySheets = type_pay_sheets.map((type_pay_sheet) => ({
-      //   value: type_pay_sheet.id,
-      //   label: type_pay_sheet.name,
-      // }));
-      // setTypePaySheets(formattedTypePaySheets);
+      // Obtener tipos de prótesis únicos
+      const typesRes = await casesAPI.getProsthesisTypes();
+      setProsthesisTypes(typesRes.data.map(type => ({ value: type, label: type })));
+
+      // Usar las opciones estáticas para statute (o podrías obtenerlas de la API)
+      setStatutes(STATUTE_OPTIONS);
     } catch (e) {
       console.error("Failed to fetch data", e);
+      // Fallback a opciones estáticas
+      setOrigins(ORIGIN_OPTIONS);
+      setProsthesisTypes(PROSTHESIS_TYPE_OPTIONS);
+      setStatutes(STATUTE_OPTIONS);
     }
   }, []);
-  // Form configuration for ReusableForm
 
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
 
-  {
-    /* 
-    
-    // Datos personales
-    "nac": "V",
-    "ci": "12345678",
-    "full_name": "María Elena Rodríguez Pérez",
-    "date_birth": "1975-05-15",
-    "sex": "F",
-    "city": "Caracas",
-    "state": "Distrito Capital",
-    "administrative_location_id": 1,
-    "phone_number": "+584141234567",
-    
-    // Datos de pensión
-    "type_pension": "Jubilacion",
-    "type_pay_sheet_id": 1,
-    "last_charge": "Jefe de Departamento",
-    "civil_status": "C",
-    "minor_child_nro": 2,
-    "disabled_child_nro": 0,
-    "receive_pension_from_another_organization_status": false,
-    "another_organization_name": null,
-    "has_authorizations": true,
-    
-    // Pensión sobrevivencia (condicional - en este caso false)
-    "pension_survivor_status": false,
-    "fullname_causative": null,
-    "age_causative": null,
-    "parent_causative": null,
-    "sex_causative": null,
-    "ci_causative": null,
-    "decease_date": null,
-    "suspend_payment_status": false,
-    "last_payment": null
-    */
-  }
-
-  const defaultFormData = {
-    // Datos personales
-    photo: "",
-    nac: "V",
-    ci: "",
-    full_name: "",
-    date_birth: "",
-    sex: "F",
-    city: "Coro",
-    state: "Falcón",
-    administrative_location_id: 1,
-    phone_number: "",
-
-    // Datos de pensión
-    type_pension: "Jubilacion",
-    type_pay_sheet_id: 1,
-    last_charge: "",
-    civil_status: "C",
-    minor_child_nro: 0,
-    disabled_child_nro: 0,
-    receive_pension_from_another_organization_status: false,
-    another_organization_name: null,
-    has_authorizations: true,
-
-    // Pensión sobrevivencia (condicional - en este caso false)
-    pension_survivor_status: false,
-    fullname_causative: null,
-    age_causative: null,
-    parent_causative: null,
-    sex_causative: null,
-    ci_causative: null,
-    decease_date: null,
-    suspend_payment_status: false,
-    last_payment: null,
-    fotoChanged: false,
-  };
-
   const [formData, setFormData] = useState(structuredClone(defaultFormData));
 
-  const patientFormFields = useMemo(() => [
-    {
-      name: "code",
-      label: "Código",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
+  // Form fields configuration - solo los campos base
+  const baseFormFields = useMemo(() => [
     {
       name: "name",
-      label: "Denunciante",
+      label: "Nombre y apellido",
       type: "text",
       required: true,
       className: "col-span-2",
     },
     {
       name: "ci",
-      label: "CI",
+      label: "Cédula",
       type: "text",
-      required: true,
+      className: "col-span-2",
+    },
+    {
+      name: "origin",
+      label: "Origen",
+      type: "select",
+      options: origins,
+      className: "col-span-2",
+    },
+    {
+      name: "sex",
+      label: "Sexo",
+      type: "select",
+      options: SEX_OPTIONS,
+      className: "col-span-2",
+    },
+    {
+      name: "birth_date",
+      label: "Fecha de Nacimiento",
+      type: "date",
+      className: "col-span-2",
+    },
+    {
+      name: "age",
+      label: "Edad",
+      type: "number",
       className: "col-span-2",
     },
     {
       name: "phone",
       label: "Teléfono",
       type: "text",
-      required: true,
       className: "col-span-2",
     },
     {
-      name: "state",
-      label: "Estado",
+      name: "email",
+      label: "Email",
+      type: "email",
+      className: "col-span-2",
+    },
+    {
+      name: "address",
+      label: "Dirección",
       type: "text",
+      className: "col-span-4",
+      multiline: true,
+    },
+    {
+      name: "type_of_prosthesis",
+      label: "Tipo de Prótesis",
+      type: "select",
       required: true,
+      options: prosthesisTypes,
       className: "col-span-2",
     },
     {
-      name: "municipality",
-      label: "Municipio",
+      name: "tooth_color",
+      label: "Color de Diente",
       type: "text",
-      required: true,
       className: "col-span-2",
     },
     {
-      name: "parish",
-      label: "Parroquia",
-      type: "text",
-      required: true,
+      name: "creation_date",
+      label: "Fecha de Creación",
+      type: "date",
       className: "col-span-2",
     },
     {
-      name: "health_center",
-      label: "Centro de Salud",
-      type: "text",
-      required: true,
+      name: "number_of_models",
+      label: "Número de Modelos",
+      type: "number",
       className: "col-span-2",
     },
     {
-      name: "description",
-      label: "Descripción",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-    {
-      name: "subcategory",
-      label: "Subcategoría",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-    {
-      name: "extended_category",
-      label: "Categoría Extendida",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-    {
-      name: "request",
-      label: "Solicitud",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-    {
-      name: "requirement",
-      label: "Requerimiento",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-
-    {
-      name: "statute_id",
+      name: "statute",
       label: "Estatuto",
       type: "select",
       required: true,
@@ -289,14 +210,105 @@ export default function CasosPage() {
       className: "col-span-2",
     },
     {
-      name: "type_of_prosthesis_id",
-      label: "Tipo de Prótesis",
-      type: "select",
-      required: true,
-      options: typeOfProsthesis,
+      name: "observation",
+      label: "Observación",
+      type: "text",
+      multiline: true,
+      className: "col-span-4",
+    },
+  ], [origins, prosthesisTypes, statutes]);
+
+  // Campos condicionales (checkboxes + sus fechas asociadas)
+  const conditionalFields = useMemo(() => [
+    {
+      checkbox: "is_tdi_completed",
+      dateField: "tdi_date",
+      numberField: "number_of_tdi",
+      label: "TDI",
+      checkboxLabel: "TDI",
+    },
+    {
+      checkbox: "is_rdm_completed",
+      dateField: "rdm_date",
+      label: "RDM",
+      checkboxLabel: "RDM",
+    },
+    {
+      checkbox: "is_threaded_completed",
+      dateField: "threaded_date",
+      label: "Roscado",
+      checkboxLabel: "Roscado",
+    },
+    {
+      checkbox: "is_polished_completed",
+      dateField: "polished_date",
+      label: "Pulido",
+      checkboxLabel: "Pulido",
+    },
+  ], []);
+
+  // Función para renderizar campos condicionales
+  const renderConditionalFields = useCallback(() => {
+    return conditionalFields.map((item) => {
+      const isChecked = formData[item.checkbox];
+      
+      return (
+        <React.Fragment key={item.checkbox}>
+          {/* Checkbox */}
+          <FormField
+            name={item.checkbox}
+            label={item.checkboxLabel}
+            type="checkbox"
+            className="col-span-2"
+            value={formData[item.checkbox]}
+            onChange={handleChangeValue}
+          />
+          
+          {/* Fecha (visible solo si el checkbox está marcado) */}
+          {isChecked && (
+            <FormField
+              name={item.dateField}
+              label={`Fecha ${item.label}`}
+              type="date"
+              className="col-span-2"
+              value={formData[item.dateField] || ""}
+              onChange={handleChangeValue}
+              required={isChecked}
+            />
+          )}
+          
+          {/* Campo de número para TDI (visible solo si TDI está marcado) */}
+          {item.checkbox === "is_tdi_completed" && isChecked && (
+            <FormField
+              name="number_of_tdi"
+              label="Número de TDI"
+              type="number"
+              className="col-span-2"
+              value={formData.number_of_tdi || 0}
+              onChange={handleChangeValue}
+              required={isChecked}
+            />
+          )}
+        </React.Fragment>
+      );
+    });
+  }, [formData, conditionalFields]);
+
+  // Campos de "model_only" y "model_rodete" (siempre visibles)
+  const modelFields = useMemo(() => [
+    {
+      name: "model_only",
+      label: "Modelo (solo)",
+      type: "checkbox",
       className: "col-span-2",
     },
-  ]);
+    {
+      name: "model_rodete",
+      label: "Modelo (Rodete)",
+      type: "checkbox",
+      className: "col-span-2",
+    },
+  ], []);
 
   const [submitString, setSubmitString] = useState("Registrar");
   const [isFormInitialized, setIsFormInitialized] = useState(false);
@@ -306,14 +318,51 @@ export default function CasosPage() {
     setLoading(true);
 
     try {
-      // Prepare both requestsF
+      // Validar campos requeridos
+      if (!formData.code) {
+        showError("El campo 'Código' es requerido");
+        setLoading(false);
+        return;
+      }
+      if (!formData.name) {
+        showError("El campo 'Nombre' es requerido");
+        setLoading(false);
+        return;
+      }
+      if (!formData.type_of_prosthesis) {
+        showError("El campo 'Tipo de Prótesis' es requerido");
+        setLoading(false);
+        return;
+      }
+
+      // Validar que si un checkbox está marcado, su fecha también esté presente
+      const conditionalValidation = conditionalFields.every((item) => {
+        if (formData[item.checkbox] && !formData[item.dateField]) {
+          showError(`La fecha de ${item.label} es requerida cuando está completado`);
+          return false;
+        }
+        return true;
+      });
+
+      if (!conditionalValidation) {
+        setLoading(false);
+        return;
+      }
+
+      // Validar TDI number
+      if (formData.is_tdi_completed && (!formData.number_of_tdi || formData.number_of_tdi <= 0)) {
+        showError("El número de TDI es requerido cuando TDI está completado");
+        setLoading(false);
+        return;
+      }
+
       const internalRequest =
         submitString === "Actualizar"
           ? casesAPI.updateCase(formData.id, formData)
           : casesAPI.createCase(formData);
 
       await internalRequest;
-      // Handle success
+
       if (submitString === "Actualizar") {
         setSubmitString("Registrar");
       }
@@ -321,12 +370,11 @@ export default function CasosPage() {
       showSuccess("Operación completada con éxito");
       setFormData(structuredClone(defaultFormData));
       setIsModalOpen(false);
-      setIsFormInitialized(false); // ← Desactivar guardado
+      setIsFormInitialized(false);
       fetchData();
-      localStorage.removeItem("formData"); // ← Limpiar
+      localStorage.removeItem("formData");
       localStorage.removeItem("submitString");
     } catch (error) {
-      // This will only catch errors from the internal API
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -339,22 +387,17 @@ export default function CasosPage() {
 
   const handleDelete = async (id) => {
     try {
-      if (!window.confirm("¿Está seguro de eliminar esta Casos?")) {
+      if (!window.confirm("¿Está seguro de eliminar este caso?")) {
         return;
       }
-      const res = await casesAPI.deleteCase(id);
-      if (res.status) {
-        showSuccess("Trabajador eliminado con éxito");
-      }
-      console.log(res.status);
+      await casesAPI.deleteCase(id);
+      showSuccess("Caso eliminado con éxito");
       fetchData();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || "An error occurred";
       showError(errorMessage);
     }
-
-    // Call your delete API or show a confirmation dialog
   };
 
   const columns = useMemo(
@@ -362,23 +405,42 @@ export default function CasosPage() {
       {
         accessorKey: "code",
         header: "Código",
-        size: 100,
+        size: 120,
         enableColumnFilter: true,
         enableSorting: true,
       },
       {
         accessorKey: "name",
-        header: "Denunciante",
-        size: 200,
+        header: "Nombre",
+        size: 150,
         enableColumnFilter: true,
         enableSorting: true,
       },
       {
         accessorKey: "ci",
-        header: "CI",
+        header: "Cédula",
         size: 100,
         enableColumnFilter: true,
         enableSorting: true,
+      },
+      {
+        accessorKey: "origin",
+        header: "Origen",
+        size: 120,
+        enableColumnFilter: true,
+        enableSorting: true,
+        filterVariant: "select",
+        filterSelectOptions: ORIGIN_OPTIONS.map(opt => opt.value),
+      },
+      {
+        accessorKey: "sex",
+        header: "Sexo",
+        size: 80,
+        enableColumnFilter: true,
+        enableSorting: true,
+        filterVariant: "select",
+        filterSelectOptions: ["M", "F"],
+        Cell: ({ cell }) => cell.getValue() === "M" ? "Masculino" : "Femenino",
       },
       {
         accessorKey: "phone",
@@ -388,139 +450,83 @@ export default function CasosPage() {
         enableSorting: true,
       },
       {
-        accessorKey: "state",
-        header: "Estado",
-        size: 100,
+        accessorKey: "email",
+        header: "Email",
+        size: 150,
         enableColumnFilter: true,
         enableSorting: true,
       },
       {
-        accessorKey: "municipality",
-        header: "Municipio",
-        size: 100,
+        accessorKey: "type_of_prosthesis",
+        header: "Tipo de Prótesis",
+        size: 150,
         enableColumnFilter: true,
         enableSorting: true,
-      },
-      {
-        accessorKey: "parish",
-        header: "Parroquia",
-        size: 100,
-        enableColumnFilter: true,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "health_center",
-        header: "Centro de Salud",
-        size: 100,
-        enableColumnFilter: true,
-        enableSorting: true,
-      },
-
-      {
-        accessorKey: "description",
-        header: "Descripción",
-        size: 200,
-        maxSize: 400,
-        enableColumnFilter: true,
-
-        enableSorting: true,
-        Cell: ({ cell }) => {
-          return (
-            <div className="text-justify" title={cell.getValue()}>
-              {cell.getValue()}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "subcategory",
-        header: "Subcategoría",
-        size: 100,
-        enableColumnFilter: true,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "extended_category",
-        header: "Categoría Extendida",
-        size: 100,
-        enableColumnFilter: true,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "request",
-        header: "Solicitud",
-        size: 130,
-        enableColumnFilter: true,
-        enableSorting: true,
-      },
-      {
-        accessorKey: "requirement",
-        header: "Requerimiento",
-        size: 120,
-        enableColumnFilter: true,
-        enableSorting: true,
+        filterVariant: "select",
+        filterSelectOptions: PROSTHESIS_TYPE_OPTIONS.map(opt => opt.value),
       },
       {
         accessorKey: "creation_date",
-        header: "Fecha de Creación",
-        size: 100,
+        header: "Fecha Creación",
+        size: 130,
         enableColumnFilter: true,
         enableSorting: true,
         Cell: ({ cell }) => {
           const dateString = cell.getValue();
-
-          // Safety check in case the value is null or undefined
           if (!dateString) return "N/A";
-
-          return new Date(dateString).toLocaleString(navigator.language, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          });
+          return new Date(dateString).toLocaleDateString();
         },
       },
       {
-        accessorKey: "status_date",
-        header: "Fecha de Status",
-        size: 100,
-        enableColumnFilter: true,
-        enableSorting: true,
-        Cell: ({ cell }) => {
-          const dateString = cell.getValue();
-
-          // Safety check in case the value is null or undefined
-          if (!dateString) return "N/A";
-
-          return new Date(dateString).toLocaleString(navigator.language, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          });
-        },
-      },
-      {
-        accessorKey: "statute_name",
+        accessorKey: "statute",
         header: "Estatuto",
         size: 140,
         enableColumnFilter: true,
         enableSorting: true,
         filterVariant: "select",
-        filterSelectOptions: statutes.map((statute) => statute.label),
+        filterSelectOptions: STATUTE_OPTIONS.map(opt => opt.value),
         Cell: ({ cell }) => {
+          const statute = STATUTE_OPTIONS.find(s => s.value === cell.getValue());
           return (
             <div
-              className={`px-2 py-1 rounded-full  text-sm font-bold ${cell.row.original.statute_id == 3 || cell.row.original.statute_id == 1 ? "text-dark" : "text-white"}`}
-              style={{ backgroundColor: cell.row.original.statute_color }}
+              className="px-3 py-1 rounded-full text-sm font-bold text-white text-center"
+              style={{ backgroundColor: statute?.color || "#6b7280" }}
             >
               {cell.getValue()}
             </div>
           );
         },
       },
-
+      {
+        accessorKey: "is_tdi_completed",
+        header: "TDI",
+        size: 80,
+        enableColumnFilter: true,
+        enableSorting: true,
+        Cell: ({ cell }) => (
+          <span className={cell.getValue() ? "text-green-600" : "text-gray-400"}>
+            {cell.getValue() ? "✅" : "❌"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "is_rdm_completed",
+        header: "RDM",
+        size: 80,
+        enableColumnFilter: true,
+        enableSorting: true,
+        Cell: ({ cell }) => (
+          <span className={cell.getValue() ? "text-green-600" : "text-gray-400"}>
+            {cell.getValue() ? "✅" : "❌"}
+          </span>
+        ),
+      },
       {
         header: "Acciones",
         accessorKey: "actions",
         enableColumnFilter: false,
         enableSorting: false,
+        size: 120,
         Cell: ({ cell }) => {
           return (
             <div className="flex gap-2">
@@ -530,15 +536,14 @@ export default function CasosPage() {
                   setFormData({ ...cell.row.original });
                   setSubmitString("Actualizar");
                 }}
-                className="text-blue-500 p-1 rounded-full hover:bg-gray-300 hover:underline"
+                className="text-blue-500 p-1 rounded-full hover:bg-blue-50 hover:underline"
                 title="Editar"
               >
                 <Icon icon="material-symbols:edit" width={20} height={20} />
               </button>
-
               <button
                 onClick={() => handleDelete(cell.row.original.id)}
-                className="text-gray-600 p-1 rounded-full hover:bg-gray-300 hover:underline ml-2"
+                className="text-red-500 p-1 rounded-full hover:bg-red-50 hover:underline"
                 title="Eliminar"
               >
                 <Icon
@@ -552,7 +557,7 @@ export default function CasosPage() {
         },
       },
     ],
-    [statutes],
+    [],
   );
 
   const [data, setData] = useState([]);
@@ -561,10 +566,9 @@ export default function CasosPage() {
 
   // Server-side state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
-  const [sorting, setSorting] = useState([{ id: "id", desc: true }]);
+  const [sorting, setSorting] = useState([{ id: "created_at", desc: true }]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  // Move useMemo outside the map - process all test sections at once
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -572,33 +576,33 @@ export default function CasosPage() {
       const res = await casesAPI.getCases({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
-        sortField: sorting[0]?.id || "id",
+        sortField: sorting[0]?.id || "created_at",
         sortOrder: sorting[0]?.desc ? "desc" : "asc",
-        search: globalFilter, // Global search
+        search: globalFilter,
         filters: JSON.stringify(
           columnFilters.reduce((acc, curr) => {
             acc[curr.id] = curr.value;
             return acc;
-          }, {}),
+          }, {})
         ),
       });
-      setData(res.cases.data);
-      setRowCount(res.cases.total);
+      setData(res.data.cases);
+      setRowCount(res.data.pagination.total);
     } catch (e) {
       console.error("Failed to fetch data", e);
+      showError("Error al cargar los datos");
     }
     setIsLoading(false);
-  }, [pagination, sorting, columnFilters, globalFilter]);
+  }, [pagination, sorting, columnFilters, globalFilter, showError]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Create debounced function once
+  // Debounced save form data
   const debouncedSaveFormData = useMemo(
     () =>
       debounce((data, submitStr) => {
-        // Excluir el campo photo porque File no se puede serializar a JSON
         const { photo, ...dataWithoutPhoto } = data;
         localStorage.setItem("formData", JSON.stringify(dataWithoutPhoto));
         localStorage.setItem("submitString", JSON.stringify(submitStr));
@@ -607,46 +611,48 @@ export default function CasosPage() {
   );
 
   useEffect(() => {
-    // Solo guardar si el formulario ya fue inicializado por el usuario
     if (isFormInitialized) {
       debouncedSaveFormData(formData, submitString);
     }
   }, [formData, debouncedSaveFormData, isFormInitialized]);
 
-  // Debounced global filter handler
+  // Debounced global filter
   const debouncedGlobalFilter = useMemo(
     () =>
       debounce((value) => {
         setGlobalFilter(value);
-        setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
       }, 300),
     [],
   );
 
   const handleChangeValue = useCallback((e) => {
-    const { name, value } = e.target;
-    // if input is type checked
-    if (e.target.type === "checkbox") {
-      setFormData((prev) => ({
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => {
+      const newData = {
         ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
 
-        [name]: e.target.checked,
-      }));
-      return;
-    }
-    setFormData((prev) => ({
-      ...prev,
+      // Si se desmarca un checkbox, limpiar su fecha asociada
+      if (type === "checkbox") {
+        const conditionalItem = conditionalFields.find(item => item.checkbox === name);
+        if (conditionalItem && !checked) {
+          newData[conditionalItem.dateField] = "";
+          if (conditionalItem.checkbox === "is_tdi_completed") {
+            newData.number_of_tdi = 0;
+          }
+        }
+      }
 
-      [name]: value,
-    }));
+      return newData;
+    });
+    setIsFormInitialized(true);
+  }, [conditionalFields]);
 
-    setIsFormInitialized(true); // ← Activar guardado automático
-  }, []);
-
-  console.log({ formData });
   return (
     <>
-      <title>Casos </title>
+      <title>Casos</title>
       <div style={{ height: 580, width: "100%" }}>
         <div className="md:flex justify-between items-center mb-4">
           <div>
@@ -660,9 +666,10 @@ export default function CasosPage() {
                 title="Restaurar formulario sin guardar"
                 className="hover:shadow-lg hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
                 onClick={() => {
-                  setFormData(JSON.parse(localStorage.getItem("formData")));
+                  const savedData = JSON.parse(localStorage.getItem("formData"));
+                  setFormData(savedData);
                   setSubmitString(
-                    JSON.parse(localStorage.getItem("submitString")),
+                    JSON.parse(localStorage.getItem("submitString"))
                   );
                   setIsModalOpen(true);
                 }}
@@ -670,7 +677,7 @@ export default function CasosPage() {
                 <small className="text-gray-500">Recuperar</small>
                 <Icon
                   icon="line-md:backup-restore"
-                  className="w-6 h-6 text-gray-500  "
+                  className="w-6 h-6 text-gray-500"
                 />
               </button>
             )}
@@ -686,124 +693,123 @@ export default function CasosPage() {
             >
               Registrar Caso
             </FuturisticButton>
-
-            <Link
-              to="/dashboard/casos/import"
-              className="items-center flex p-2 py-2.5 bg-gray-200 hover:bg-white gap-2 rounded-md"
-            >
-              <Icon
-                icon="streamline-ultimate:common-file-text-add-bold"
-                width={24}
-                height={24}
-              />
-              <span>Importar</span>
-            
-            </Link>
           </div>
         </div>
+
         <Modal
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);
-            // Opcional: también limpiar localStorage aquí si quieres
           }}
-          title="Registrar Trabajador"
-          size="xl"
+          title={submitString === "Actualizar" ? "Actualizar Caso" : "Registrar Caso"}
+          size="full"
         >
-          <form
-            className={`px-12 space-y-5 md:space-y-0 gap-7 w-full relative`}
-            onSubmit={onSubmit}
-          >
-            <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24">
+          <form className="px-12 space-y-5 gap-7 w-full relative" onSubmit={onSubmit}>
+            <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 flex gap-10">
+
               <div className="grid grid-cols-4 gap-4">
-                {patientFormFields.map((field, index) => {
-                  return (
-                    <>
-                      <FormField
-                        key={field.name}
-                        {...field}
-                        value={formData[field.name]}
-                        onChange={handleChangeValue}
-                      />
-                    </>
-                  );
-                })}
+                {/* Campos base */}
+                {baseFormFields.map((field) => (
+                  <FormField
+                    key={field.name}
+                    {...field}
+                    value={formData[field.name]}
+                    onChange={handleChangeValue}
+                  />
+                ))}
+
+                {/* Campos de modelo */}
+                {modelFields.map((field) => (
+                  <FormField
+                    key={field.name}
+                    {...field}
+                    value={formData[field.name]}
+                    onChange={handleChangeValue}
+                  />
+                ))}
+
+                {/* Campos condicionales (checkboxes con sus fechas) */}
               </div>
+              <div className=" gap-4">
+                {renderConditionalFields()}
+              </div>
+
             </div>
 
             <div className="col-span-12">
               <div className="flex justify-end space-x-4 pt-4">
                 <button
                   type="submit"
-                  variant="contained"
                   disabled={loading}
-                  startIcon={loading ? <CircularProgress size={20} /> : null}
-                  className={`px-16 py-3 rounded-md font-semibold hover:bg-color3 ${
+                  className={`px-16 py-3 rounded-md font-semibold hover:opacity-90 ${
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   } ${
-                    submitString == "Actualizar"
-                      ? "bg-color4 text-color1"
-                      : "bg-color1 text-color4"
+                    submitString === "Actualizar"
+                      ? "bg-blue-600 text-white"
+                      : "bg-green-600 text-white"
                   }`}
                 >
-                  {loading ? "Procesando..." : submitString}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <CircularProgress size={20} color="inherit" />
+                      Procesando...
+                    </span>
+                  ) : (
+                    submitString
+                  )}
                 </button>
               </div>
             </div>
           </form>
         </Modal>
+
         {!isModalOpen && (
-          <div
-            className="ag-theme-alpine ag-grid-no-border"
-            style={{ height: 500 }}
-          >
-            {
-              <MaterialReactTable
-                columns={columns}
-                data={data}
-                rowCount={rowCount}
-                manualPagination
-                manualSorting
-                manualFiltering
-                manualGlobalFilter
-                initialState={{
-                  density: "compact",
-                  columnVisibility: {
-                    // created_at: false,
-                    code: false,
-                    health_center: false,
-                    subcategory: false,
-                    extended_category: false,
-                    state: false,
-                  },
-                }}
-                state={{
-                  pagination,
-                  sorting,
-                  columnFilters,
-                  globalFilter,
-                  isLoading,
-                }}
-                onPaginationChange={setPagination}
-                onSortingChange={setSorting}
-                onColumnFiltersChange={setColumnFilters}
-                onGlobalFilterChange={(value) => debouncedGlobalFilter(value)}
-                enableGlobalFilter={true}
-                enableColumnFilters={true}
-                enableSorting={true}
-                enableFilters={true}
-                muiTablePaginationProps={{
-                  rowsPerPageOptions: [25, 50, 100],
-                  showFirstButton: true,
-                  showLastButton: true,
-                }}
-                muiSearchTextFieldProps={{
-                  placeholder: "Buscar",
-                  sx: { minWidth: "300px" },
-                  variant: "outlined",
-                }}
-                enableColumnResizing={true}
-                muiTableBodyRowProps={({ row }) => ({
+          <div className="ag-theme-alpine ag-grid-no-border" style={{ height: 500 }}>
+            <MaterialReactTable
+              columns={columns}
+              data={data}
+              rowCount={rowCount}
+              manualPagination
+              manualSorting
+              manualFiltering
+              manualGlobalFilter
+              initialState={{
+                density: "compact",
+                columnVisibility: {
+                  email: false,
+                  address: false,
+                  observation: false,
+                },
+              }}
+              state={{
+                pagination,
+                sorting,
+                columnFilters,
+                globalFilter,
+                isLoading,
+              }}
+              onPaginationChange={setPagination}
+              onSortingChange={setSorting}
+              onColumnFiltersChange={setColumnFilters}
+              onGlobalFilterChange={(value) => debouncedGlobalFilter(value)}
+              enableGlobalFilter={true}
+              enableColumnFilters={true}
+              enableSorting={true}
+              enableFilters={true}
+              muiTablePaginationProps={{
+                rowsPerPageOptions: [25, 50, 100],
+                showFirstButton: true,
+                showLastButton: true,
+              }}
+              muiSearchTextFieldProps={{
+                placeholder: "Buscar casos...",
+                sx: { minWidth: "300px" },
+                variant: "outlined",
+              }}
+              enableColumnResizing={true}
+              muiTableBodyRowProps={({ row }) => {
+                const statute = STATUTE_OPTIONS.find(s => s.value === row.original.statute);
+                return {
                   sx: {
                     position: "relative",
                     "&::before": {
@@ -812,15 +818,15 @@ export default function CasosPage() {
                       left: 0,
                       top: 0,
                       bottom: 0,
-                      width: "4px", // Ancho del borde
-                      backgroundColor: row.original.statute_color || "#ccc",
+                      width: "4px",
+                      backgroundColor: statute?.color || "#ccc",
                       zIndex: 1,
                       display: "block",
                     },
                   },
-                })}
-              />
-            }
+                };
+              }}
+            />
           </div>
         )}
       </div>
