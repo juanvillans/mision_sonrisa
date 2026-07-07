@@ -94,11 +94,9 @@ export default function LoginPage() {
           className=" h-screen w-full flex-1 object-bottom object-cover "
         />
         <div
-          className="login-form  absolute w-[300px] md:min-w-[400px] md:w-[450px] left-10   pb-3 top-24 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
+          className="login-form  absolute w-[300px] md:min-w-[400px] md:w-[450px] left-10 md:left-20  pb-3 top-40 z-50 px-5 pt-4 md:pt-10 sm:pt-20  text-color1 md:p-16 rounded-3xl overflow-hidden"
           style={{}}
         >
-         
-
           <form onSubmit={handleSubmit} className="fadeInUp  ">
             <div className="mb-4 mt-4  md:mt-10 ">
               <label className="block  text-sm  mb-1" htmlFor="email">
@@ -147,43 +145,41 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleForgotPsw}
-                  className="text-sm hover:underline"
+                  className="text-sm hover:underline mt-1"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="group border-dark group-hover:before:duration-500 group-hover:after:duration-500 after:duration-500 hover:border-rose-300 hover:before:[box-shadow:_20px_20px_20px_30px_#a21caf] duration-500 before:duration-500 hover:duration-500 underline underline-offset-2 hover:after:-right-8 hover:before:right-12 hover:before:-bottom-8 hover:before:blur hover:underline hover:underline-offset-4  origin-left hover:decoration-2 hover:text-rose-300 relative  h-16 w-full border text-left p-3 text-dark text-base font-bold rounded-lg  overflow-hidden  before:absolute before:w-12 before:h-12 before:content[''] before:right-1 before:top-1 before:z-10 before:bg-violet-500 before:rounded-full before:blur-lg  after:absolute after:z-10 after:w-20 after:h-20 after:content['']  after:bg-rose-300 after:right-8 after:top-3 after:rounded-full after:blur-lg"
-            >
-              {loading ? "Ingresando..." : "INGRESAR"}
+            <button type="submit" disabled={loading} className="button">
+              <span>{loading ? "Ingresando..." : "INGRESAR"}</span>
             </button>
           </form>
         </div>
       </div>
-      <header className="flex justify-between gap-1 md:gap-4 flex-col md:flex-row items-center px-10 text-color1 text-sm z-40 w-full relative md:absolute  top-0 text-center -100 py-2 lg:py-5">
-         <div className="  fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-20 h-20 md:w-32 md:h-2w-32 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
-            <img
-              src={misionSonrisaLogo}
-              className="logo inline-block mx-auto  "
-              alt="logo del sistema"
-            />
-          </div>
-          <div className="flex gap-2 items-center justify-center fadeInUp-delay-2 fadeInUp">
-            <img
-              src={secretariaLogo}
-              alt="secretariaLogo"
-              className="w-12 h-12  aspect-square  "
-            />
-            <img
-              src={cintilloCorto}
-              alt=""
-              className="max-w-[240px] h-min rounded-xl "
-            />
-          </div>
+
+
+      <header className="flex justify-between gap-1 md:gap-4 flex-col md:flex-row items-center px-10 lg:px-20 text-color1 text-sm z-40 w-full relative md:absolute  top-0 text-center -100 py-2 lg:py-5">
+        <div className="  fadeInUp-delay-1 fadeInUp   backdrop-blur-none w-20 h-20 md:w-32 md:h-2w-32 flex items-center justify-center aspect-square rounded-full p-2.5 md:p-4">
+          <img
+            src={misionSonrisaLogo}
+            className="logo inline-block mx-auto  "
+            alt="logo del sistema"
+          />
+        </div>
+        <div className="flex gap-2 items-center justify-center fadeInUp-delay-2 fadeInUp">
+          <img
+            src={secretariaLogo}
+            alt="secretariaLogo"
+            className="w-12 h-12  aspect-square  "
+          />
+          <img
+            src={cintilloCorto}
+            alt=""
+            className="max-w-[240px] h-min rounded-xl "
+          />
+        </div>
       </header>
       <footer className="flex gap-1 flex-col md:flex-row items-center px-10 justify-between text-gray-50 text-sm z-40 w-full relative md:absolute bottom-0 text-center -100 py-1">
         <p className="text-xs">

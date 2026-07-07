@@ -8,6 +8,8 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
         runtimeCaching: [
           {
@@ -48,7 +50,8 @@ export default defineConfig({
       manifest: {
         name: "Misión Sonrisa ",
         short_name: "Misión Sonrisa",
-        description: "Sistema de gestión de solicitudes médicas, para el puesto de comando de la Secretaria de Salud del estado Falcón",
+        description:
+          "Sistema de gestión de solicitudes médicas, para el puesto de comando de la Secretaria de Salud del estado Falcón",
         theme_color: "#011140",
         background_color: "#ffffff",
         display: "standalone",
