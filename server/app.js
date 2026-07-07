@@ -12,7 +12,7 @@ import arcjetMiddleware from "./middlewares/arcjet.middleware.js";
 // import originsRouter from "./routers/origins.routes.js";
 import excelImportRouter from "./routers/excel_import.routers.js";
 import statutesRouter from "./routers/statutes.routers.js";
-import medicalRequestsRouter from "./routers/cases.routers.js";
+import casesRouter from "./routers/cases.routers.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -51,9 +51,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(arcjetMiddleware);
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
+app.use("/api/cases", casesRouter);
 app.use("/api/excel-imports", excelImportRouter);
 app.use("/api/statutes", statutesRouter);
-app.use("/api/medical-requests", medicalRequestsRouter);
 // app.use("/api/examination-types", examinationTypesRouter);
 // app.use("/api/exams", examsRouter);
 // app.use("/api/results", resultsRouter); // Public routes for exam resultscv

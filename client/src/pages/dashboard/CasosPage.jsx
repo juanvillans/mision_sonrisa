@@ -43,9 +43,9 @@ const STATUTE_OPTIONS = [
   { value: "Terminado", label: "Terminado", color: "#10b981" }, // Verde
   { value: "Entregado", label: "Entregado", color: "#3b82f6" }, // Azul
 ];
+const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
 
 const defaultFormData = {
-  code: "",
   name: "",
   ci: "",
   origin: "",
@@ -57,19 +57,19 @@ const defaultFormData = {
   address: "",
   type_of_prosthesis: "",
   tooth_color: "",
-  creation_date: "",
+  creation_date: currentDate,
   number_of_models: 0,
   is_tdi_completed: false,
-  tdi_date: "",
+  tdi_date: null,
   number_of_tdi: 0,
   model_only: false,
   model_rodete: false,
   is_rdm_completed: false,
-  rdm_date: "",
+  rdm_date: null,
   is_threaded_completed: false,
-  threaded_date: "",
+  threaded_date: null,
   is_polished_completed: false,
-  polished_date: "",
+  polished_date: null,
   statute: "En proceso",
   observation: "",
 };
@@ -91,14 +91,8 @@ export default function CasosPage() {
   const fetchInitialData = useCallback(async () => {
     try {
       // Obtener orígenes únicos
-      const originsRes = await casesAPI.getOrigins();
-      setOrigins(originsRes.data.map(origin => ({ value: origin, label: origin })));
-
-      // Obtener tipos de prótesis únicos
-      const typesRes = await casesAPI.getProsthesisTypes();
-      setProsthesisTypes(typesRes.data.map(type => ({ value: type, label: type })));
-
-      // Usar las opciones estáticas para statute (o podrías obtenerlas de la API)
+      setOrigins(ORIGIN_OPTIONS);
+      setProsthesisTypes(PROSTHESIS_TYPE_OPTIONS);
       setStatutes(STATUTE_OPTIONS);
     } catch (e) {
       console.error("Failed to fetch data", e);
@@ -116,199 +110,206 @@ export default function CasosPage() {
   const [formData, setFormData] = useState(structuredClone(defaultFormData));
 
   // Form fields configuration - solo los campos base
-  const baseFormFields = useMemo(() => [
-    {
-      name: "name",
-      label: "Nombre y apellido",
-      type: "text",
-      required: true,
-      className: "col-span-2",
-    },
-    {
-      name: "ci",
-      label: "Cédula",
-      type: "text",
-      className: "col-span-2",
-    },
-    {
-      name: "origin",
-      label: "Origen",
-      type: "select",
-      options: origins,
-      className: "col-span-2",
-    },
-    {
-      name: "sex",
-      label: "Sexo",
-      type: "select",
-      options: SEX_OPTIONS,
-      className: "col-span-2",
-    },
-    {
-      name: "birth_date",
-      label: "Fecha de Nacimiento",
-      type: "date",
-      className: "col-span-2",
-    },
-    {
-      name: "age",
-      label: "Edad",
-      type: "number",
-      className: "col-span-2",
-    },
-    {
-      name: "phone",
-      label: "Teléfono",
-      type: "text",
-      className: "col-span-2",
-    },
-    {
-      name: "email",
-      label: "Email",
-      type: "email",
-      className: "col-span-2",
-    },
-    {
-      name: "address",
-      label: "Dirección",
-      type: "text",
-      className: "col-span-4",
-      multiline: true,
-    },
-    {
-      name: "type_of_prosthesis",
-      label: "Tipo de Prótesis",
-      type: "select",
-      required: true,
-      options: prosthesisTypes,
-      className: "col-span-2",
-    },
-    {
-      name: "tooth_color",
-      label: "Color de Diente",
-      type: "text",
-      className: "col-span-2",
-    },
-    {
-      name: "creation_date",
-      label: "Fecha de Creación",
-      type: "date",
-      className: "col-span-2",
-    },
-    {
-      name: "number_of_models",
-      label: "Número de Modelos",
-      type: "number",
-      className: "col-span-2",
-    },
-    {
-      name: "statute",
-      label: "Estatuto",
-      type: "select",
-      required: true,
-      options: statutes,
-      className: "col-span-2",
-    },
-    {
-      name: "observation",
-      label: "Observación",
-      type: "text",
-      multiline: true,
-      className: "col-span-4",
-    },
-  ], [origins, prosthesisTypes, statutes]);
+  const baseFormFields = useMemo(
+    () => [
+      {
+        name: "creation_date",
+        label: "Fecha de Creación",
+        type: "date",
+        className: "col-span-12",
+        required: true,
+      },
+      {
+        name: "name",
+        label: "Nombre y apellido",
+        type: "text",
+        required: true,
+        className: "col-span-6",
+      },
+      {
+        name: "ci",
+        label: "Cédula",
+        type: "text",
+        className: "col-span-6",
+      },
+      {
+        name: "origin",
+        label: "Origen",
+        type: "select",
+        options: origins,
+        className: "col-span-6",
+      },
+      {
+        name: "sex",
+        label: "Sexo",
+        type: "select",
+        options: SEX_OPTIONS,
+        className: "col-span-6",
+      },
+      {
+        name: "birth_date",
+        label: "Fecha de Nacimiento",
+        type: "date",
+        className: "col-span-4",
+      },
+      {
+        name: "age",
+        label: "Edad",
+        type: "number",
+        className: "col-span-2 ",
+      },
+      {
+        name: "phone",
+        label: "Teléfono",
+        type: "text",
+        className: "col-span-6",
+      },
+      {
+        name: "email",
+        label: "Email",
+        type: "email",
+        className: "col-span-6",
+      },
+
+      {
+        name: "tooth_color",
+        label: "Color de Diente",
+        type: "text",
+        className: "col-span-6",
+      },
+      {
+        name: "address",
+        label: "Dirección",
+        type: "text",
+        className: "col-span-12",
+        multiline: true,
+      },
+      {
+        name: "observation",
+        label: "Observación",
+        type: "text",
+        multiline: true,
+        className: "col-span-12",
+      },
+    ],
+    [origins],
+  );
 
   // Campos condicionales (checkboxes + sus fechas asociadas)
-  const conditionalFields = useMemo(() => [
-    {
-      checkbox: "is_tdi_completed",
-      dateField: "tdi_date",
-      numberField: "number_of_tdi",
-      label: "TDI",
-      checkboxLabel: "TDI",
-    },
-    {
-      checkbox: "is_rdm_completed",
-      dateField: "rdm_date",
-      label: "RDM",
-      checkboxLabel: "RDM",
-    },
-    {
-      checkbox: "is_threaded_completed",
-      dateField: "threaded_date",
-      label: "Roscado",
-      checkboxLabel: "Roscado",
-    },
-    {
-      checkbox: "is_polished_completed",
-      dateField: "polished_date",
-      label: "Pulido",
-      checkboxLabel: "Pulido",
-    },
-  ], []);
+  const conditionalFields = useMemo(
+    () => [
+      {
+        checkbox: "is_tdi_completed",
+        dateField: "tdi_date",
+        numberField: "number_of_tdi",
+        label: "TDI",
+        checkboxLabel: "TDI",
+      },
+      {
+        checkbox: "is_rdm_completed",
+        dateField: "rdm_date",
+        label: "RDM",
+        checkboxLabel: "RDM",
+      },
+      {
+        checkbox: "is_threaded_completed",
+        dateField: "threaded_date",
+        label: "Roscado",
+        checkboxLabel: "Roscado",
+      },
+      {
+        checkbox: "is_polished_completed",
+        dateField: "polished_date",
+        label: "Pulido",
+        checkboxLabel: "Pulido",
+      },
+    ],
+    [],
+  );
 
   // Función para renderizar campos condicionales
   const renderConditionalFields = useCallback(() => {
     return conditionalFields.map((item) => {
       const isChecked = formData[item.checkbox];
-      
+
       return (
-        <React.Fragment key={item.checkbox}>
+        <div
+          className="grid grid-cols-12 items-center gap-1"
+          key={item.checkbox}
+        >
           {/* Checkbox */}
           <FormField
             name={item.checkbox}
             label={item.checkboxLabel}
             type="checkbox"
-            className="col-span-2"
+            className="col-span-4"
             value={formData[item.checkbox]}
             onChange={handleChangeValue}
           />
-          
+
           {/* Fecha (visible solo si el checkbox está marcado) */}
           {isChecked && (
             <FormField
               name={item.dateField}
               label={`Fecha ${item.label}`}
               type="date"
-              className="col-span-2"
+              className="col-span-5"
               value={formData[item.dateField] || ""}
               onChange={handleChangeValue}
               required={isChecked}
             />
           )}
-          
+
           {/* Campo de número para TDI (visible solo si TDI está marcado) */}
           {item.checkbox === "is_tdi_completed" && isChecked && (
             <FormField
               name="number_of_tdi"
-              label="Número de TDI"
+              label="Nro TDI"
               type="number"
-              className="col-span-2"
+              className="col-span-3"
               value={formData.number_of_tdi || 0}
               onChange={handleChangeValue}
               required={isChecked}
             />
           )}
-        </React.Fragment>
+        </div>
       );
     });
   }, [formData, conditionalFields]);
 
   // Campos de "model_only" y "model_rodete" (siempre visibles)
-  const modelFields = useMemo(() => [
-    {
-      name: "model_only",
-      label: "Modelo (solo)",
-      type: "checkbox",
-      className: "col-span-2",
-    },
-    {
-      name: "model_rodete",
-      label: "Modelo (Rodete)",
-      type: "checkbox",
-      className: "col-span-2",
-    },
-  ], []);
+  const modelFields = useMemo(
+    () => [
+      {
+        name: "type_of_prosthesis",
+        label: "Tipo de Prótesis",
+        type: "select",
+        required: true,
+        options: prosthesisTypes,
+        className: "col-span-4",
+      },
+
+      {
+        name: "number_of_models",
+        label: "Número de Modelos",
+        type: "number",
+        className: "col-span-4",
+      },
+      {
+        name: "model_only",
+        label: "Modelo (solo)",
+        type: "checkbox",
+        className: "col-span-2",
+      },
+      {
+        name: "model_rodete",
+        label: "Modelo (Rodete)",
+        type: "checkbox",
+        className: "col-span-2",
+      },
+    ],
+    [prosthesisTypes],
+  );
 
   const [submitString, setSubmitString] = useState("Registrar");
   const [isFormInitialized, setIsFormInitialized] = useState(false);
@@ -319,11 +320,7 @@ export default function CasosPage() {
 
     try {
       // Validar campos requeridos
-      if (!formData.code) {
-        showError("El campo 'Código' es requerido");
-        setLoading(false);
-        return;
-      }
+
       if (!formData.name) {
         showError("El campo 'Nombre' es requerido");
         setLoading(false);
@@ -338,7 +335,9 @@ export default function CasosPage() {
       // Validar que si un checkbox está marcado, su fecha también esté presente
       const conditionalValidation = conditionalFields.every((item) => {
         if (formData[item.checkbox] && !formData[item.dateField]) {
-          showError(`La fecha de ${item.label} es requerida cuando está completado`);
+          showError(
+            `La fecha de ${item.label} es requerida cuando está completado`,
+          );
           return false;
         }
         return true;
@@ -350,7 +349,10 @@ export default function CasosPage() {
       }
 
       // Validar TDI number
-      if (formData.is_tdi_completed && (!formData.number_of_tdi || formData.number_of_tdi <= 0)) {
+      if (
+        formData.is_tdi_completed &&
+        (!formData.number_of_tdi || formData.number_of_tdi <= 0)
+      ) {
         showError("El número de TDI es requerido cuando TDI está completado");
         setLoading(false);
         return;
@@ -430,7 +432,7 @@ export default function CasosPage() {
         enableColumnFilter: true,
         enableSorting: true,
         filterVariant: "select",
-        filterSelectOptions: ORIGIN_OPTIONS.map(opt => opt.value),
+        filterSelectOptions: ORIGIN_OPTIONS.map((opt) => opt.value),
       },
       {
         accessorKey: "sex",
@@ -440,7 +442,8 @@ export default function CasosPage() {
         enableSorting: true,
         filterVariant: "select",
         filterSelectOptions: ["M", "F"],
-        Cell: ({ cell }) => cell.getValue() === "M" ? "Masculino" : "Femenino",
+        Cell: ({ cell }) =>
+          cell.getValue() === "M" ? "Masculino" : "Femenino",
       },
       {
         accessorKey: "phone",
@@ -463,7 +466,7 @@ export default function CasosPage() {
         enableColumnFilter: true,
         enableSorting: true,
         filterVariant: "select",
-        filterSelectOptions: PROSTHESIS_TYPE_OPTIONS.map(opt => opt.value),
+        filterSelectOptions: PROSTHESIS_TYPE_OPTIONS.map((opt) => opt.value),
       },
       {
         accessorKey: "creation_date",
@@ -484,9 +487,11 @@ export default function CasosPage() {
         enableColumnFilter: true,
         enableSorting: true,
         filterVariant: "select",
-        filterSelectOptions: STATUTE_OPTIONS.map(opt => opt.value),
+        filterSelectOptions: STATUTE_OPTIONS.map((opt) => opt.value),
         Cell: ({ cell }) => {
-          const statute = STATUTE_OPTIONS.find(s => s.value === cell.getValue());
+          const statute = STATUTE_OPTIONS.find(
+            (s) => s.value === cell.getValue(),
+          );
           return (
             <div
               className="px-3 py-1 rounded-full text-sm font-bold text-white text-center"
@@ -504,7 +509,9 @@ export default function CasosPage() {
         enableColumnFilter: true,
         enableSorting: true,
         Cell: ({ cell }) => (
-          <span className={cell.getValue() ? "text-green-600" : "text-gray-400"}>
+          <span
+            className={cell.getValue() ? "text-green-600" : "text-gray-400"}
+          >
             {cell.getValue() ? "✅" : "❌"}
           </span>
         ),
@@ -516,7 +523,9 @@ export default function CasosPage() {
         enableColumnFilter: true,
         enableSorting: true,
         Cell: ({ cell }) => (
-          <span className={cell.getValue() ? "text-green-600" : "text-gray-400"}>
+          <span
+            className={cell.getValue() ? "text-green-600" : "text-gray-400"}
+          >
             {cell.getValue() ? "✅" : "❌"}
           </span>
         ),
@@ -583,9 +592,10 @@ export default function CasosPage() {
           columnFilters.reduce((acc, curr) => {
             acc[curr.id] = curr.value;
             return acc;
-          }, {})
+          }, {}),
         ),
       });
+      console.log({ res });
       setData(res.data.cases);
       setRowCount(res.data.pagination.total);
     } catch (e) {
@@ -626,29 +636,34 @@ export default function CasosPage() {
     [],
   );
 
-  const handleChangeValue = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => {
-      const newData = {
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      };
+  const handleChangeValue = useCallback(
+    (e) => {
+      const { name, value, type, checked } = e.target;
+      setFormData((prev) => {
+        const newData = {
+          ...prev,
+          [name]: type === "checkbox" ? checked : value,
+        };
 
-      // Si se desmarca un checkbox, limpiar su fecha asociada
-      if (type === "checkbox") {
-        const conditionalItem = conditionalFields.find(item => item.checkbox === name);
-        if (conditionalItem && !checked) {
-          newData[conditionalItem.dateField] = "";
-          if (conditionalItem.checkbox === "is_tdi_completed") {
-            newData.number_of_tdi = 0;
+        // Si se desmarca un checkbox, limpiar su fecha asociada
+        if (type === "checkbox") {
+          const conditionalItem = conditionalFields.find(
+            (item) => item.checkbox === name,
+          );
+          if (conditionalItem && !checked) {
+            newData[conditionalItem.dateField] = "";
+            if (conditionalItem.checkbox === "is_tdi_completed") {
+              newData.number_of_tdi = 0;
+            }
           }
         }
-      }
 
-      return newData;
-    });
-    setIsFormInitialized(true);
-  }, [conditionalFields]);
+        return newData;
+      });
+      setIsFormInitialized(true);
+    },
+    [conditionalFields],
+  );
 
   return (
     <>
@@ -666,10 +681,12 @@ export default function CasosPage() {
                 title="Restaurar formulario sin guardar"
                 className="hover:shadow-lg hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
                 onClick={() => {
-                  const savedData = JSON.parse(localStorage.getItem("formData"));
+                  const savedData = JSON.parse(
+                    localStorage.getItem("formData"),
+                  );
                   setFormData(savedData);
                   setSubmitString(
-                    JSON.parse(localStorage.getItem("submitString"))
+                    JSON.parse(localStorage.getItem("submitString")),
                   );
                   setIsModalOpen(true);
                 }}
@@ -701,13 +718,17 @@ export default function CasosPage() {
           onClose={() => {
             setIsModalOpen(false);
           }}
-          title={submitString === "Actualizar" ? "Actualizar Caso" : "Registrar Caso"}
+          title={
+            submitString === "Actualizar" ? "Actualizar Caso" : "Registrar Caso"
+          }
           size="full"
         >
-          <form className="px-12 space-y-5 gap-7 w-full relative" onSubmit={onSubmit}>
-            <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 flex gap-10">
-
-              <div className="grid grid-cols-4 gap-4">
+          <form
+            className="px-12 space-y-5 gap-7 w-full relative"
+            onSubmit={onSubmit}
+          >
+            <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 grid grid-cols-12 gap-10">
+              <div className="grid grid-cols-12 gap-4 col-span-5">
                 {/* Campos base */}
                 {baseFormFields.map((field) => (
                   <FormField
@@ -717,8 +738,10 @@ export default function CasosPage() {
                     onChange={handleChangeValue}
                   />
                 ))}
+              </div>
+              {/* Campos de modelo */}
 
-                {/* Campos de modelo */}
+              <div className="col-span-3 space-y-2">
                 {modelFields.map((field) => (
                   <FormField
                     key={field.name}
@@ -727,13 +750,12 @@ export default function CasosPage() {
                     onChange={handleChangeValue}
                   />
                 ))}
-
-                {/* Campos condicionales (checkboxes con sus fechas) */}
               </div>
-              <div className=" gap-4">
+
+              {/* Campos condicionales (checkboxes con sus fechas) */}
+              <div className="col-span-4 space-y-4 ">
                 {renderConditionalFields()}
               </div>
-
             </div>
 
             <div className="col-span-12">
@@ -745,8 +767,8 @@ export default function CasosPage() {
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   } ${
                     submitString === "Actualizar"
-                      ? "bg-blue-600 text-white"
-                      : "bg-green-600 text-white"
+                      ? "bg-sky-200 text-white"
+                      : "bg-pink text-color1"
                   }`}
                 >
                   {loading ? (
@@ -764,7 +786,10 @@ export default function CasosPage() {
         </Modal>
 
         {!isModalOpen && (
-          <div className="ag-theme-alpine ag-grid-no-border" style={{ height: 500 }}>
+          <div
+            className="ag-theme-alpine ag-grid-no-border"
+            style={{ height: 500 }}
+          >
             <MaterialReactTable
               columns={columns}
               data={data}
@@ -808,7 +833,9 @@ export default function CasosPage() {
               }}
               enableColumnResizing={true}
               muiTableBodyRowProps={({ row }) => {
-                const statute = STATUTE_OPTIONS.find(s => s.value === row.original.statute);
+                const statute = STATUTE_OPTIONS.find(
+                  (s) => s.value === row.original.statute,
+                );
                 return {
                   sx: {
                     position: "relative",

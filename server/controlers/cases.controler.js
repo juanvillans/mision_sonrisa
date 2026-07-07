@@ -90,7 +90,6 @@ export const getCaseById = catchAsync(async (req, res, next) => {
 export const createCase = catchAsync(async (req, res, next) => {
   // Filter out fields that don't belong to cases table
   const { 
-    creation_date_formatted, 
     tdi_date_formatted,
     rdm_date_formatted,
     threaded_date_formatted,
@@ -101,10 +100,7 @@ export const createCase = catchAsync(async (req, res, next) => {
     ...caseData 
   } = req.body;
 
-  // Validate required fields
-  if (!caseData.code) {
-    throw commonErrors.badRequest('El campo "code" es requerido');
-  }
+  console.log("Received case data for creation:", caseData);
   if (!caseData.name) {
     throw commonErrors.badRequest('El campo "name" es requerido');
   }
@@ -156,7 +152,6 @@ export const updateCase = catchAsync(async (req, res, next) => {
 
   // Filter out fields that don't belong to cases table
   const { 
-    creation_date_formatted, 
     tdi_date_formatted,
     rdm_date_formatted,
     threaded_date_formatted,

@@ -1,5 +1,6 @@
 // import secretariaLogo from "../../assets/secretaria_logo.png";
 import logo1x10 from "../../assets/1x10.png";
+import misionSonrisaLogo from "../../assets/misionSonrisaLogo.png";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
 import { useState } from "react";
@@ -49,13 +50,13 @@ export default function SideNav(props) {
     >
 
       <Link
-        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-20 items-end justify-end rounded-md bg-white bg-opacity-5   md:h-28 ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
+        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-20 items-end justify-end rounded-md bg-gradient-to-b from-pink via-pink via-50% to-white to-50%   md:h-20 ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
         href="/"
       >
         <div className="w-32 font-exo2 relative duration-150 text-white md:w-40 flex flex-row justify-between items-end">
           <img
-            src={logo1x10}
-            className={`${props.isSidebarOpen ? 'w-12 h-12' : 'w-10 h-8'} logo w-12 duration-150 `}
+            src={misionSonrisaLogo}
+            className={`${props.isSidebarOpen ? 'w-16 h-16 relative top-5' : 'w-10 h-8'} logo w-12 duration-150 `}
             alt="logo del sistema"
           />
           
@@ -75,7 +76,7 @@ export default function SideNav(props) {
                 className={({ isActive }) =>
                   `flex h-[48px] duration-150 hover:text-color3 grow items-center relative justify-between gap-2  text-sm font-medium hover:bg-sky-100 md:flex-none md:justify-between pl-2 ${
                     isActive
-                      ? "bg-gray-50 activeLink text-color1 rounded-2xl md:rounded-none  md:rounded-l-2xl"
+                      ? "bg-gray-50 activeLink text-pink font-bold rounded-2xl md:rounded-none  md:rounded-l-2xl"
                       : "text-gray-50 hover:bg-white/10 hover:text-color4 rounded-full"
                   }`
                 }
@@ -97,7 +98,7 @@ export default function SideNav(props) {
           <button
             onClick={handleLogout}
             title="Cerrar sesión"
-            className=" flex text-white text-opacity-50 h-[48px] grow items-center justify-center gap-2 rounded-md  text-sm font-medium hover:bg-sky-100 hover:text-color1 md:flex-none md:justify-start md:p-2 md:px-1"
+            className=" flex text-white text-opacity-50 h-[48px] grow items-center justify-center gap-2 rounded-md  text-sm font-medium hover:bg-sky-100 hover:text-pink md:flex-none md:justify-start md:p-2 md:px-1"
           >
             <Icon icon="tabler:logout" width="24" height="24" />
             {props.isSidebarOpen ? (

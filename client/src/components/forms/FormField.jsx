@@ -34,7 +34,7 @@
     if (type === "checkbox") {
       const checkboxId = `checkbox-${name}`;
       return (
-        <div className={`flex items-center gap-3 ${className}`}>
+        <div className={`flex items-center  ${className}`}>
           <Checkbox
             id={checkboxId}
             name={name}

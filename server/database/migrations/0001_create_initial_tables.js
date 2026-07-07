@@ -29,11 +29,10 @@ export async function up(knex) {
       table.increments("id").primary();
 
       // Campos del Excel
-      table.string("code").notNullable().unique();
       table.string("name").notNullable();
       table.string("ci");
 
-      table.enu("Origin", ["Misión sonrisa", "1x10"], {
+      table.enu("origin", ["Misión sonrisa", "1x10"], {
         useNative: true,
         enumName: "origin_enum",
       });
@@ -109,7 +108,7 @@ export async function up(knex) {
       table.text("observation");
 
       // Índices
-      table.index("code");
+      table.index("id");
       table.index("ci");
       table.index("name");
       table.index("statute"); // Índice para el ENUM
@@ -153,10 +152,11 @@ export async function down(knex) {
 
   // Eliminar tablas (orden correcto)
   await knex.schema.dropTableIfExists("cases");
+  await knex.schema.dropTableIfExists("users"); // ¡Asegúrate de borrar users también si es necesario!
 
   // Eliminar ENUMs (PostgreSQL)
-
   await knex.raw("DROP TYPE IF EXISTS sex_enum");
   await knex.raw("DROP TYPE IF EXISTS origin_enum");
   await knex.raw("DROP TYPE IF EXISTS statute_enum");
+  await knex.raw("DROP TYPE IF EXISTS prosthesis_type_enum"); // <--- FALTABÁ ESTE
 }
