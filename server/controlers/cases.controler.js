@@ -89,7 +89,10 @@ export const getCaseById = catchAsync(async (req, res, next) => {
  */
 export const createCase = catchAsync(async (req, res, next) => {
   // Filter out fields that don't belong to cases table
-  const { 
+  const {
+    id,
+    code,
+    creation_date_formatted,
     tdi_date_formatted,
     rdm_date_formatted,
     threaded_date_formatted,
@@ -97,9 +100,27 @@ export const createCase = catchAsync(async (req, res, next) => {
     birth_date_formatted,
     created_at_formatted,
     updated_at_formatted,
-    ...caseData 
+    created_at,
+    updated_at,
+    ...caseData
   } = req.body;
-
+ 
+  /** turn date to null if is empty */
+  if (caseData.tdi_date=== '') {
+    caseData.tdi_date= null;
+  }
+  if (caseData.rdm_date=== '') {
+    caseData.rdm_date= null;
+  }
+  if (caseData.threaded_date=== '') {
+    caseData.threaded_date= null;
+  }
+  if (caseData.polished_date=== '') {
+    caseData.polished_date= null;
+  }
+  if (caseData.birth_date=== '') {
+    caseData.birth_date= null;
+  }
   console.log("Received case data for creation:", caseData);
   if (!caseData.name) {
     throw commonErrors.badRequest('El campo "name" es requerido');
@@ -151,7 +172,9 @@ export const updateCase = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   // Filter out fields that don't belong to cases table
-  const { 
+  const {
+    code,
+    creation_date_formatted,
     tdi_date_formatted,
     rdm_date_formatted,
     threaded_date_formatted,
@@ -159,7 +182,9 @@ export const updateCase = catchAsync(async (req, res, next) => {
     birth_date_formatted,
     created_at_formatted,
     updated_at_formatted,
-    ...caseData 
+    created_at,
+    updated_at,
+    ...caseData
   } = req.body;
 
   // Validate ENUM values if present

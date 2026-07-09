@@ -3,7 +3,6 @@ import { db } from "../database/postgre.js";
 class Case {
   constructor(data) {
     this.id = data.id;
-    this.code = data.code;
     this.name = data.name;
     this.ci = data.ci;
     this.origin = data.origin;
@@ -85,8 +84,7 @@ class Case {
     if (search && search.trim() !== '') {
       const searchTerm = `%${search.trim()}%`;
       query = query.where(function() {
-        this.where('cases.code', 'ilike', searchTerm)
-          .orWhere('cases.name', 'ilike', searchTerm)
+        this.where('cases.name', 'ilike', searchTerm)
           .orWhere('cases.ci', 'ilike', searchTerm)
           .orWhere('cases.phone', 'ilike', searchTerm)
           .orWhere('cases.email', 'ilike', searchTerm)
@@ -130,7 +128,6 @@ class Case {
     // Field mapping for sorting
     const fieldMapping = {
       id: 'cases.id',
-      code: 'cases.code',
       name: 'cases.name',
       ci: 'cases.ci',
       origin: 'cases.origin',

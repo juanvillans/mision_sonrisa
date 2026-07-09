@@ -405,7 +405,7 @@ export default function CasosPage() {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "code",
+        accessorKey: "id",
         header: "Código",
         size: 120,
         enableColumnFilter: true,
@@ -741,7 +741,7 @@ export default function CasosPage() {
               </div>
               {/* Campos de modelo */}
 
-              <div className="col-span-3 space-y-2">
+              <div className="col-span-3 space-y-3">
                 {modelFields.map((field) => (
                   <FormField
                     key={field.name}
