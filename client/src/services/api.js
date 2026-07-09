@@ -119,6 +119,9 @@ export const casesAPI = {
   
   // Actualizar un caso existente
   updateCase: (id, caseData) => api.put(`/cases/${id}`, caseData),
+
+  // marcar un caso como entregado
+  markCaseAsDelivered: (id) => api.patch(`/cases/${id}/mark-delivered`),
   
   // Eliminar un caso
   deleteCase: (id) => api.delete(`/cases/${id}`),

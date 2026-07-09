@@ -402,6 +402,21 @@ export default function CasosPage() {
     }
   };
 
+  const handleMarkAsDelivered = async (id) => {
+    try {
+      if (!window.confirm("¿Está seguro de marcar este caso como entregado?")) {
+        return;
+      }
+      await casesAPI.markCaseAsDelivered(id);
+      showSuccess("Caso marcado como entregado con éxito");
+      fetchData();
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || "An error occurred";
+      showError(errorMessage);
+    }
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -561,6 +576,19 @@ export default function CasosPage() {
                   height={20}
                 />
               </button>
+              {cell.row.original.statute !== "Entregado" && (
+                <button
+                  onClick={() => handleMarkAsDelivered(cell.row.original.id)}
+                  className="text-[#3b82f6] p-1 rounded-full hover:bg-green-50 hover:underline"
+                  title="Marcar como Entregado"
+                >
+                <Icon
+                  icon="material-symbols:check-circle-outline"
+                  width={20}
+                  height={20}
+                />
+
+              </button>)}
             </div>
           );
         },

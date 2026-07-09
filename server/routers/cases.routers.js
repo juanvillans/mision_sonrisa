@@ -9,7 +9,8 @@ import {
   getOrigins,
   getProsthesisTypes,
   bulkUpdateStatus,
-  exportCases
+  exportCases,
+  markCaseAsDelivered
 } from "../controlers/cases.controler.js";
 import { protect } from "../middlewares/auth.middleware.js";
 
@@ -44,6 +45,9 @@ casesRouter.post("/", createCase);
 
 // PUT update case
 casesRouter.put("/:id", updateCase);
+
+// PATCH mark case as delivered
+casesRouter.patch("/:id/mark-delivered", markCaseAsDelivered);
 
 // DELETE case
 casesRouter.delete("/:id", deleteCase);

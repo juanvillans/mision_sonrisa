@@ -224,6 +224,22 @@ export const updateCase = catchAsync(async (req, res, next) => {
   });
 });
 
+/* Mark case as delivered  (patch) */
+export const markCaseAsDelivered = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const updatedCase = await Case.update(id, { statute: 'Entregado' });
+
+  if (!updatedCase) {
+    throw commonErrors.notFound('Caso no encontrado');
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: updatedCase,
+    message: 'Caso marcado como entregado exitosamente'
+  });
+});
+
 /**
  * Delete a case
  */
