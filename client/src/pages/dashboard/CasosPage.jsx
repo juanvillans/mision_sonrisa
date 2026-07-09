@@ -227,10 +227,65 @@ export default function CasosPage() {
     [],
   );
 
+   const handleChangeValue = useCallback(
+    (e) => {
+      const { name, value, type, checked } = e.target;
+      setFormData((prev) => {
+        const conditionalItem = conditionalFields.find(
+          (item) => item.checkbox === name,
+        );
+        if (type === "checkbox" && checked && conditionalItem) {
+          const index = conditionalFields.findIndex(
+            (item) => item.checkbox === name,
+          );
+          const previousItem = index > 0 ? conditionalFields[index - 1] : null;
+
+          if (previousItem && !prev[previousItem.checkbox]) {
+            showError(
+              `Debe completar ${previousItem.label} antes de marcar ${conditionalItem.label}`,
+            );
+            return prev;
+          }
+        }
+
+        const newData = {
+          ...prev,
+          [name]: type === "checkbox" ? checked : value,
+        };
+
+        // Si se desmarca un checkbox, limpiar su fecha asociada y etapas posteriores
+        if (type === "checkbox" && conditionalItem && !checked) {
+          newData[conditionalItem.dateField] = "";
+          if (conditionalItem.checkbox === "is_tdi_completed") {
+            newData.number_of_tdi = 0;
+          }
+
+          const index = conditionalFields.findIndex(
+            (item) => item.checkbox === name,
+          );
+          for (let i = index + 1; i < conditionalFields.length; i += 1) {
+            const nextItem = conditionalFields[i];
+            newData[nextItem.checkbox] = false;
+            newData[nextItem.dateField] = "";
+            if (nextItem.checkbox === "is_tdi_completed") {
+              newData.number_of_tdi = 0;
+            }
+          }
+        }
+
+        return newData;
+      });
+      setIsFormInitialized(true);
+    },
+    [conditionalFields, showError],
+  );
+
   // Función para renderizar campos condicionales
   const renderConditionalFields = useCallback(() => {
-    return conditionalFields.map((item) => {
+    return conditionalFields.map((item, index) => {
       const isChecked = formData[item.checkbox];
+      const previousItem = index > 0 ? conditionalFields[index - 1] : null;
+      const isDisabled = previousItem && !formData[previousItem.checkbox];
 
       return (
         <div
@@ -245,6 +300,7 @@ export default function CasosPage() {
             className="col-span-4"
             value={formData[item.checkbox]}
             onChange={handleChangeValue}
+            disabled={isDisabled}
           />
 
           {/* Fecha (visible solo si el checkbox está marcado) */}
@@ -275,7 +331,7 @@ export default function CasosPage() {
         </div>
       );
     });
-  }, [formData, conditionalFields]);
+  }, [formData, conditionalFields, handleChangeValue]);
 
   // Campos de "model_only" y "model_rodete" (siempre visibles)
   const modelFields = useMemo(
@@ -344,6 +400,23 @@ export default function CasosPage() {
       });
 
       if (!conditionalValidation) {
+        setLoading(false);
+        return;
+      }
+
+      const sequentialValidation = conditionalFields.every((item, index) => {
+        if (index === 0) return true;
+        const previousItem = conditionalFields[index - 1];
+        if (formData[item.checkbox] && !formData[previousItem.checkbox]) {
+          showError(
+            `Debe completar ${previousItem.label} antes de marcar ${item.label}`,
+          );
+          return false;
+        }
+        return true;
+      });
+
+      if (!sequentialValidation) {
         setLoading(false);
         return;
       }
@@ -421,8 +494,8 @@ export default function CasosPage() {
     () => [
       {
         accessorKey: "id",
-        header: "Código",
-        size: 120,
+        header: "Cód",
+        size: 90,
         enableColumnFilter: true,
         enableSorting: true,
       },
@@ -457,8 +530,6 @@ export default function CasosPage() {
         enableSorting: true,
         filterVariant: "select",
         filterSelectOptions: ["M", "F"],
-        Cell: ({ cell }) =>
-          cell.getValue() === "M" ? "Masculino" : "Femenino",
       },
       {
         accessorKey: "phone",
@@ -503,48 +574,51 @@ export default function CasosPage() {
         enableSorting: true,
         filterVariant: "select",
         filterSelectOptions: STATUTE_OPTIONS.map((opt) => opt.value),
-        Cell: ({ cell }) => {
+        Cell: ({ row }) => {
+          const { original } = row;
+          console.log({original})
           const statute = STATUTE_OPTIONS.find(
-            (s) => s.value === cell.getValue(),
+            (s) => s.value === original.statute,
           );
-          return (
-            <div
-              className="px-3 py-1 rounded-full text-sm font-bold text-white text-center"
-              style={{ backgroundColor: statute?.color || "#6b7280" }}
-            >
-              {cell.getValue()}
-            </div>
-          );
+          if (original.statute === "Entregado") {
+            return (
+              <div
+                className="px-3 py-1 rounded-full text-sm font-bold text-white text-center"
+                style={{ backgroundColor: statute?.color || "#6b7280" }}
+              >
+                {original.statute}
+              </div>
+            );
+          }
+          const stages = [
+            {
+              key: "is_polished_completed",
+              label: "Pulido",
+              color: "text-green-[#10b981]",
+            },
+            {
+              key: "is_threaded_completed",
+              label: "Roscado",
+              color: "text-[#f59e0b]",
+            },
+            { key: "is_rdm_completed", label: "RDM", color: "text-[#f59e0b]" },
+            { key: "is_tdi_completed", label: "TDI", color: "text-[#f59e0b]" },
+          ];
+
+          for (const stage of stages) {
+            if (original[stage.key]) {
+              return (
+                <span className={`font-bold ${stage.color}`}>
+                  {stage.label}
+                </span>
+              );
+            }
+          }
+
+          return <span className="text-gray-400 text-sm">Iniciado</span>;
         },
       },
-      {
-        accessorKey: "is_tdi_completed",
-        header: "TDI",
-        size: 80,
-        enableColumnFilter: true,
-        enableSorting: true,
-        Cell: ({ cell }) => (
-          <span
-            className={cell.getValue() ? "text-green-600" : "text-gray-400"}
-          >
-            {cell.getValue() ? "✅" : "❌"}
-          </span>
-        ),
-      },
-      {
-        accessorKey: "is_rdm_completed",
-        header: "RDM",
-        size: 80,
-        enableColumnFilter: true,
-        enableSorting: true,
-        Cell: ({ cell }) => (
-          <span
-            className={cell.getValue() ? "text-green-600" : "text-gray-400"}
-          >
-            {cell.getValue() ? "✅" : "❌"}
-          </span>
-        ),
-      },
+
       {
         header: "Acciones",
         accessorKey: "actions",
@@ -560,7 +634,7 @@ export default function CasosPage() {
                   setFormData({ ...cell.row.original });
                   setSubmitString("Actualizar");
                 }}
-                className="text-blue-500 p-1 rounded-full hover:bg-blue-50 hover:underline"
+                className="text-yellow-500 p-1 rounded-full hover:bg-blue-50 hover:underline"
                 title="Editar"
               >
                 <Icon icon="material-symbols:edit" width={20} height={20} />
@@ -582,13 +656,13 @@ export default function CasosPage() {
                   className="text-[#3b82f6] p-1 rounded-full hover:bg-green-50 hover:underline"
                   title="Marcar como Entregado"
                 >
-                <Icon
-                  icon="material-symbols:check-circle-outline"
-                  width={20}
-                  height={20}
-                />
-
-              </button>)}
+                  <Icon
+                    icon="material-symbols:check-circle-outline"
+                    width={20}
+                    height={20}
+                  />
+                </button>
+              )}
             </div>
           );
         },
@@ -664,34 +738,7 @@ export default function CasosPage() {
     [],
   );
 
-  const handleChangeValue = useCallback(
-    (e) => {
-      const { name, value, type, checked } = e.target;
-      setFormData((prev) => {
-        const newData = {
-          ...prev,
-          [name]: type === "checkbox" ? checked : value,
-        };
-
-        // Si se desmarca un checkbox, limpiar su fecha asociada
-        if (type === "checkbox") {
-          const conditionalItem = conditionalFields.find(
-            (item) => item.checkbox === name,
-          );
-          if (conditionalItem && !checked) {
-            newData[conditionalItem.dateField] = "";
-            if (conditionalItem.checkbox === "is_tdi_completed") {
-              newData.number_of_tdi = 0;
-            }
-          }
-        }
-
-        return newData;
-      });
-      setIsFormInitialized(true);
-    },
-    [conditionalFields],
-  );
+ 
 
   return (
     <>
