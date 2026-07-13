@@ -448,3 +448,13 @@ h5 {
     transform: scale(1);
   }
 }
+ .without-arrows::-webkit-outer-spin-button,
+ .without-arrows::-webkit-inner-spin-button {
+   -webkit-appearance: none !important;
+   margin: 0 !important;
+ }
+  .without-arrows {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+    padding-right: 0 !important; /* Ajusta según tus necesidades */
+  }

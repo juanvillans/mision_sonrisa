@@ -121,6 +121,10 @@ export const createCase = catchAsync(async (req, res, next) => {
   if (caseData.birth_date=== '') {
     caseData.birth_date= null;
   }
+
+  const isPolished = Boolean(caseData.is_polished_completed);
+  caseData.statute = isPolished ? 'Pulido/Terminado' : 'En proceso';
+
   console.log("Received case data for creation:", caseData);
   if (!caseData.name) {
     throw commonErrors.badRequest('El campo "name" es requerido');
@@ -151,7 +155,7 @@ export const createCase = catchAsync(async (req, res, next) => {
     throw commonErrors.badRequest(`type_of_prosthesis debe ser uno de: ${validProsthesisTypes.join(', ')}`);
   }
 
-  const validStatutes = ['En proceso', 'Terminado', 'Entregado'];
+  const validStatutes = ['En proceso', 'Pulido/Terminado', 'Entregado'];
   if (caseData.statute && !validStatutes.includes(caseData.statute)) {
     throw commonErrors.badRequest(`statute debe ser uno de: ${validStatutes.join(', ')}`);
   }
@@ -206,9 +210,13 @@ export const updateCase = catchAsync(async (req, res, next) => {
     throw commonErrors.badRequest(`type_of_prosthesis debe ser uno de: ${validProsthesisTypes.join(', ')}`);
   }
 
-  const validStatutes = ['En proceso', 'Terminado', 'Entregado'];
+  const validStatutes = ['En proceso', 'Pulido/Terminado', 'Entregado'];
   if (caseData.statute && !validStatutes.includes(caseData.statute)) {
     throw commonErrors.badRequest(`statute debe ser uno de: ${validStatutes.join(', ')}`);
+  }
+
+  if (caseData.is_polished_completed !== undefined) {
+    caseData.statute = Boolean(caseData.is_polished_completed) ? 'Pulido/Terminado' : 'En proceso';
   }
 
   const updatedCase = await Case.update(id, caseData);
@@ -296,7 +304,7 @@ export const getProsthesisTypes = catchAsync(async (req, res, next) => {
 
 /**
  * Bulk update cases status
- * Body: { ids: [1,2,3], statute: 'Terminado' }
+ * Body: { ids: [1,2,3], statute: 'Pulido/Terminado' }
  */
 export const bulkUpdateStatus = catchAsync(async (req, res, next) => {
   const { ids, statute } = req.body;
@@ -309,7 +317,7 @@ export const bulkUpdateStatus = catchAsync(async (req, res, next) => {
     throw commonErrors.badRequest('Se requiere el campo "statute"');
   }
 
-  const validStatutes = ['En proceso', 'Terminado', 'Entregado'];
+  const validStatutes = ['En proceso', 'Pulido/Terminado', 'Entregado'];
   if (!validStatutes.includes(statute)) {
     throw commonErrors.badRequest(`statute debe ser uno de: ${validStatutes.join(', ')}`);
   }

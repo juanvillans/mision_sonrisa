@@ -90,7 +90,7 @@ export async function up(knex) {
       table.date("polished_date"); 
 
       table
-        .enu("statute", ["En proceso", "Terminado", "Entregado"], {
+        .enu("statute", ["En proceso", "Pulido/Terminado", "Entregado"], {
           useNative: true,
           enumName: "statute_enum",
         })

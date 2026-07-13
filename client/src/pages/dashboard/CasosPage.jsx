@@ -15,6 +15,10 @@ import { useFeedback } from "../../context/FeedbackContext.jsx";
 import { MaterialReactTable } from "material-react-table";
 import debounce from "lodash.debounce";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+// En las versiones recientes (v6/v7/v8), el adaptador se importa desde esta ruta:
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/es'; // Para cambiar el calendario a español
 
 // Constantes para los ENUMs
 const ORIGIN_OPTIONS = [
@@ -40,8 +44,8 @@ const PROSTHESIS_TYPE_OPTIONS = [
 
 const STATUTE_OPTIONS = [
   { value: "En proceso", label: "En proceso", color: "#f59e0b" }, // Amarillo
-  { value: "Terminado", label: "Terminado", color: "#10b981" }, // Verde
-  { value: "Entregado", label: "Entregado", color: "#3b82f6" }, // Azul
+  { value: "Pulido/Terminado", label: "Pulido/Terminado", color: "#3b82f6 " }, // Verde
+  { value: "Entregado", label: "Entregado", color: "#10b981" }, // Azul
 ];
 const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
 
@@ -109,6 +113,24 @@ export default function CasosPage() {
 
   const [formData, setFormData] = useState(structuredClone(defaultFormData));
 
+  const calculateAge = (birthDate) => {
+    if (!birthDate) return "";
+
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age > 0 ? age : 0;
+  };
+
   // Form fields configuration - solo los campos base
   const baseFormFields = useMemo(
     () => [
@@ -156,7 +178,8 @@ export default function CasosPage() {
         name: "age",
         label: "Edad",
         type: "number",
-        className: "col-span-2 ",
+        className: "col-span-2 without-arrows",
+        readOnly: true,
       },
       {
         name: "phone",
@@ -227,7 +250,7 @@ export default function CasosPage() {
     [],
   );
 
-   const handleChangeValue = useCallback(
+  const handleChangeValue = useCallback(
     (e) => {
       const { name, value, type, checked } = e.target;
       setFormData((prev) => {
@@ -253,9 +276,24 @@ export default function CasosPage() {
           [name]: type === "checkbox" ? checked : value,
         };
 
+        // Calcular edad automáticamente
+        if (name === "birth_date") {
+          newData.age = calculateAge(value);
+        }
+
+        // Si se marca un checkbox, establecer la fecha actual
+        if (type === "checkbox" && conditionalItem && checked) {
+          newData[conditionalItem.dateField] = currentDate;
+
+          // Si es TDI, establecer número por defecto (opcional)
+          if (conditionalItem.checkbox === "is_tdi_completed") {
+            newData.number_of_tdi = newData.number_of_tdi || 1; // Valor por defecto 1
+          }
+        }
+
         // Si se desmarca un checkbox, limpiar su fecha asociada y etapas posteriores
         if (type === "checkbox" && conditionalItem && !checked) {
-          newData[conditionalItem.dateField] = "";
+          newData[conditionalItem.dateField] = null;
           if (conditionalItem.checkbox === "is_tdi_completed") {
             newData.number_of_tdi = 0;
           }
@@ -266,7 +304,7 @@ export default function CasosPage() {
           for (let i = index + 1; i < conditionalFields.length; i += 1) {
             const nextItem = conditionalFields[i];
             newData[nextItem.checkbox] = false;
-            newData[nextItem.dateField] = "";
+            newData[nextItem.dateField] = null;
             if (nextItem.checkbox === "is_tdi_completed") {
               newData.number_of_tdi = 0;
             }
@@ -508,7 +546,7 @@ export default function CasosPage() {
       },
       {
         accessorKey: "ci",
-        header: "Cédula",
+        header: "C.I",
         size: 100,
         enableColumnFilter: true,
         enableSorting: true,
@@ -560,6 +598,7 @@ export default function CasosPage() {
         size: 130,
         enableColumnFilter: true,
         enableSorting: true,
+        filterVariant: "date-range",
         Cell: ({ cell }) => {
           const dateString = cell.getValue();
           if (!dateString) return "N/A";
@@ -576,7 +615,7 @@ export default function CasosPage() {
         filterSelectOptions: STATUTE_OPTIONS.map((opt) => opt.value),
         Cell: ({ row }) => {
           const { original } = row;
-          console.log({original})
+          console.log({ original });
           const statute = STATUTE_OPTIONS.find(
             (s) => s.value === original.statute,
           );
@@ -653,7 +692,7 @@ export default function CasosPage() {
               {cell.row.original.statute !== "Entregado" && (
                 <button
                   onClick={() => handleMarkAsDelivered(cell.row.original.id)}
-                  className="text-[#3b82f6] p-1 rounded-full hover:bg-green-50 hover:underline"
+                  className="text-[#10b981] p-1 rounded-full hover:bg-green-50 hover:underline"
                   title="Marcar como Entregado"
                 >
                   <Icon
@@ -681,6 +720,22 @@ export default function CasosPage() {
   const [columnFilters, setColumnFilters] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
+  const filtersObject = useMemo(() => {
+    return columnFilters.reduce((acc, curr) => {
+      const value = curr.value;
+      const isEmptyArray =
+        Array.isArray(value) &&
+        value.every((item) => item === null || item === undefined || item === "");
+      const isEmptyString = value === "" || value === null || value === undefined;
+
+      if (!isEmptyArray && !isEmptyString) {
+        acc[curr.id] = value;
+      }
+
+      return acc;
+    }, {});
+  }, [columnFilters]);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -690,12 +745,7 @@ export default function CasosPage() {
         sortField: sorting[0]?.id || "created_at",
         sortOrder: sorting[0]?.desc ? "desc" : "asc",
         search: globalFilter,
-        filters: JSON.stringify(
-          columnFilters.reduce((acc, curr) => {
-            acc[curr.id] = curr.value;
-            return acc;
-          }, {}),
-        ),
+        filters: JSON.stringify(filtersObject),
       });
       console.log({ res });
       setData(res.data.cases);
@@ -705,7 +755,7 @@ export default function CasosPage() {
       showError("Error al cargar los datos");
     }
     setIsLoading(false);
-  }, [pagination, sorting, columnFilters, globalFilter, showError]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting[0]?.id, sorting[0]?.desc, globalFilter, filtersObject]);
 
   useEffect(() => {
     fetchData();
@@ -738,11 +788,11 @@ export default function CasosPage() {
     [],
   );
 
- 
-
   return (
     <>
       <title>Casos</title>
+
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
       <div style={{ height: 580, width: "100%" }}>
         <div className="md:flex justify-between items-center mb-4">
           <div>
@@ -754,7 +804,7 @@ export default function CasosPage() {
             {isThereLocalStorageFormData && (
               <button
                 title="Restaurar formulario sin guardar"
-                className="hover:shadow-lg hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
+                className="hover:shadow-lg opacity-55 hover:opacity-100 hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
                 onClick={() => {
                   const savedData = JSON.parse(
                     localStorage.getItem("formData"),
@@ -842,7 +892,7 @@ export default function CasosPage() {
                     loading ? "opacity-50 cursor-not-allowed" : ""
                   } ${
                     submitString === "Actualizar"
-                      ? "bg-sky-200 text-white"
+                      ? "bg-sky-300 text-color1"
                       : "bg-pink text-color1"
                   }`}
                 >
@@ -875,10 +925,12 @@ export default function CasosPage() {
               manualGlobalFilter
               initialState={{
                 density: "compact",
+                showColumnFilters: true,
                 columnVisibility: {
                   email: false,
                   address: false,
                   observation: false,
+                  origin: false,
                 },
               }}
               state={{
@@ -892,7 +944,7 @@ export default function CasosPage() {
               onSortingChange={setSorting}
               onColumnFiltersChange={setColumnFilters}
               onGlobalFilterChange={(value) => debouncedGlobalFilter(value)}
-              enableGlobalFilter={true}
+              enableGlobalFilter={false}
               enableColumnFilters={true}
               enableSorting={true}
               enableFilters={true}
@@ -906,6 +958,7 @@ export default function CasosPage() {
                 sx: { minWidth: "300px" },
                 variant: "outlined",
               }}
+
               enableColumnResizing={true}
               muiTableBodyRowProps={({ row }) => {
                 const statute = STATUTE_OPTIONS.find(
@@ -932,6 +985,7 @@ export default function CasosPage() {
           </div>
         )}
       </div>
+      </LocalizationProvider>
     </>
   );
 }

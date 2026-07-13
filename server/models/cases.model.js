@@ -104,12 +104,42 @@ class Case {
           if (['origin', 'sex', 'type_of_prosthesis', 'statute'].includes(field)) {
             query = query.where(`cases.${field}`, value);
           } 
+          // Handle numeric filters by exact value
+          else if (field === 'id') {
+            const parsedValue = Number(value);
+            if (!Number.isNaN(parsedValue)) {
+              query = query.where('cases.id', parsedValue);
+            }
+          } else if (['number_of_models', 'number_of_tdi'].includes(field)) {
+            const parsedValue = Number(value);
+            if (!Number.isNaN(parsedValue)) {
+              query = query.where(`cases.${field}`, parsedValue);
+            }
+          }
           // Handle boolean filters
           else if (['is_tdi_completed', 'model_only', 'model_rodete', 'is_rdm_completed', 'is_threaded_completed', 'is_polished_completed'].includes(field)) {
             query = query.where(`cases.${field}`, value === 'true' || value === true);
           }
           // Handle date range filters
-          else if (field === 'creation_date_from') {
+          else if (field === 'creation_date' && Array.isArray(value)) {
+            const [startDate, endDate] = value;
+            if (startDate && endDate) {
+              query = query.whereBetween('cases.creation_date', [startDate, endDate]);
+            } else if (startDate) {
+              query = query.where('cases.creation_date', '>=', startDate);
+            } else if (endDate) {
+              query = query.where('cases.creation_date', '<=', endDate);
+            }
+          } else if (field === 'birth_date' && Array.isArray(value)) {
+            const [startDate, endDate] = value;
+            if (startDate && endDate) {
+              query = query.whereBetween('cases.birth_date', [startDate, endDate]);
+            } else if (startDate) {
+              query = query.where('cases.birth_date', '>=', startDate);
+            } else if (endDate) {
+              query = query.where('cases.birth_date', '<=', endDate);
+            }
+          } else if (field === 'creation_date_from') {
             query = query.where('cases.creation_date', '>=', value);
           } else if (field === 'creation_date_to') {
             query = query.where('cases.creation_date', '<=', value);
@@ -281,7 +311,7 @@ class Case {
       .select(
         db.raw('COUNT(*) as total'),
         db.raw(`COUNT(*) FILTER (WHERE statute = 'En proceso') as in_process`),
-        db.raw(`COUNT(*) FILTER (WHERE statute = 'Terminado') as completed`),
+        db.raw(`COUNT(*) FILTER (WHERE statute = 'Pulido/Terminado') as completed`),
         db.raw(`COUNT(*) FILTER (WHERE statute = 'Entregado') as delivered`)
       )
       .first();
