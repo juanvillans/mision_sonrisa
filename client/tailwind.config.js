@@ -30,6 +30,7 @@ export default {
         "zelle": "#6a1ccd",
         "binance": "#F3BA2F",
         "orange": "#be5c00",
+        "theeth": "#CCAF9A",
       },
       fontFamily: {
         'inter': ['"Inter"', 'sans-serif'],

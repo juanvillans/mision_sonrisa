@@ -15,10 +15,30 @@ import { useFeedback } from "../../context/FeedbackContext.jsx";
 import { MaterialReactTable } from "material-react-table";
 import debounce from "lodash.debounce";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 // En las versiones recientes (v6/v7/v8), el adaptador se importa desde esta ruta:
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import 'dayjs/locale/es'; // Para cambiar el calendario a español
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import "dayjs/locale/es"; // Para cambiar el calendario a español
+
+import PrintPage from "../../components/PrintableLaboratoryOrder.jsx";
+
+const getInitialVisibility = () => {
+  const savedVisibility = localStorage.getItem("cases_column_visibility");
+  if (savedVisibility) {
+    try {
+      return JSON.parse(savedVisibility);
+    } catch (e) {
+      console.error("Error parsing column visibility from localStorage", e);
+    }
+  }
+  // Your default hidden columns if nothing is saved yet
+  return {
+    email: false,
+    address: false,
+    observation: false,
+    origin: false,
+  };
+};
 
 // Constantes para los ENUMs
 const ORIGIN_OPTIONS = [
@@ -43,10 +63,30 @@ const PROSTHESIS_TYPE_OPTIONS = [
 ];
 
 const STATUTE_OPTIONS = [
-  { value: "En proceso", label: "En proceso", color: "#f59e0b" }, // Amarillo
-  { value: "Pulido/Terminado", label: "Pulido/Terminado", color: "#3b82f6 " }, // Verde
-  { value: "Entregado", label: "Entregado", color: "#10b981" }, // Azul
+  { value: "En proceso", label: "En proceso", color: "#DFB1C4" }, // pink
+  { value: "Pulido/Terminado", label: "Pulido/Terminado", color: "#3bbbf6 " }, // Azul
+  { value: "Entregado", label: "Entregado", color: "#2ff5b3" }, // verde
 ];
+
+const TOOTH_COLOR_OPTIONS = [
+  { value: "A1", label: "A1", color: "#E6E1CE" },
+  { value: "A2", label: "A2", color: "#E3DAC1" },
+  { value: "A3", label: "A3", color: "#DDD0B2" },
+  { value: "A3.5", label: "A3.5", color: "#D2BF9E" },
+  { value: "A4", label: "A4", color: "#C6B28E" },
+  { value: "B1", label: "B1", color: "#E9E6D4" },
+  { value: "B2", label: "B2", color: "#E6DCBF" },
+  { value: "B3", label: "B3", color: "#DECFA6" },
+  { value: "B4", label: "B4", color: "#D1C094" },
+  { value: "C1", label: "C1", color: "#DCD9CE" },
+  { value: "C2", label: "C2", color: "#D3CEBE" },
+  { value: "C3", label: "C3", color: "#C6BFAD" },
+  { value: "C4", label: "C4", color: "#B9B29E" },
+  { value: "D2", label: "D2", color: "#DAD4C1" },
+  { value: "D3", label: "D3", color: "#CEBFAF" },
+  { value: "D4", label: "D4", color: "#CBBFAD" },
+];
+
 const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
 
 const defaultFormData = {
@@ -86,10 +126,23 @@ export default function CasosPage() {
   const [loading, setLoading] = useState(false);
   const { showError, showSuccess, showInfo } = useFeedback();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printCaseData, setPrintCaseData] = useState(null);
   const [origins, setOrigins] = useState([]);
   const [prosthesisTypes, setProsthesisTypes] = useState([]);
   const [statutes, setStatutes] = useState([]);
   const { user } = useAuth();
+
+  const [columnVisibility, setColumnVisibility] =
+    useState(getInitialVisibility);
+
+  // 3. Save to localStorage whenever the state changes
+  useEffect(() => {
+    localStorage.setItem(
+      "cases_column_visibility",
+      JSON.stringify(columnVisibility),
+    );
+  }, [columnVisibility]);
 
   // Fetch initial data
   const fetchInitialData = useCallback(async () => {
@@ -153,6 +206,7 @@ export default function CasosPage() {
         label: "Cédula",
         type: "text",
         className: "col-span-6",
+        required: true,
       },
       {
         name: "origin",
@@ -160,11 +214,13 @@ export default function CasosPage() {
         type: "select",
         options: origins,
         className: "col-span-6",
+        required: true,
       },
       {
         name: "sex",
         label: "Sexo",
         type: "select",
+        required: true,
         options: SEX_OPTIONS,
         className: "col-span-6",
       },
@@ -173,6 +229,7 @@ export default function CasosPage() {
         label: "Fecha de Nacimiento",
         type: "date",
         className: "col-span-4",
+        required: true,
       },
       {
         name: "age",
@@ -186,6 +243,7 @@ export default function CasosPage() {
         label: "Teléfono",
         type: "text",
         className: "col-span-6",
+        required: true,
       },
       {
         name: "email",
@@ -197,7 +255,8 @@ export default function CasosPage() {
       {
         name: "tooth_color",
         label: "Color de Diente",
-        type: "text",
+        type: "select",
+        options: TOOTH_COLOR_OPTIONS,
         className: "col-span-6",
       },
       {
@@ -615,15 +674,14 @@ export default function CasosPage() {
         filterSelectOptions: STATUTE_OPTIONS.map((opt) => opt.value),
         Cell: ({ row }) => {
           const { original } = row;
-          console.log({ original });
           const statute = STATUTE_OPTIONS.find(
             (s) => s.value === original.statute,
           );
           if (original.statute === "Entregado") {
             return (
               <div
-                className="px-3 py-1 rounded-full text-sm font-bold text-white text-center"
-                style={{ backgroundColor: statute?.color || "#6b7280" }}
+                className="px-3 py-1 rounded-full text-sm font-bold text-black text-center"
+                style={{ background: statute?.color || "#6b7280" }}
               >
                 {original.statute}
               </div>
@@ -632,16 +690,16 @@ export default function CasosPage() {
           const stages = [
             {
               key: "is_polished_completed",
-              label: "Pulido",
-              color: "text-green-[#10b981]",
+              label: "Pulido/Terminado",
+              color: "text-green-[#2ff5b3]",
             },
             {
               key: "is_threaded_completed",
               label: "Roscado",
-              color: "text-[#f59e0b]",
+              color: "text-[#DFB1C4]",
             },
-            { key: "is_rdm_completed", label: "RDM", color: "text-[#f59e0b]" },
-            { key: "is_tdi_completed", label: "TDI", color: "text-[#f59e0b]" },
+            { key: "is_rdm_completed", label: "RDM", color: "text-[#DFB1C4]" },
+            { key: "is_tdi_completed", label: "TDI", color: "text-[#DFB1C4]" },
           ];
 
           for (const stage of stages) {
@@ -673,26 +731,16 @@ export default function CasosPage() {
                   setFormData({ ...cell.row.original });
                   setSubmitString("Actualizar");
                 }}
-                className="text-yellow-500 p-1 rounded-full hover:bg-blue-50 hover:underline"
+                className="text-theeth p-1 rounded-full hover:bg-blue-50 hover:underline"
                 title="Editar"
               >
                 <Icon icon="material-symbols:edit" width={20} height={20} />
               </button>
-              <button
-                onClick={() => handleDelete(cell.row.original.id)}
-                className="text-red-500 p-1 rounded-full hover:bg-red-50 hover:underline"
-                title="Eliminar"
-              >
-                <Icon
-                  icon="material-symbols:delete-outline"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              {cell.row.original.statute !== "Entregado" && (
+
+              {cell.row.original.statute == "Pulido/Terminado" && (
                 <button
                   onClick={() => handleMarkAsDelivered(cell.row.original.id)}
-                  className="text-[#10b981] p-1 rounded-full hover:bg-green-50 hover:underline"
+                  className="text-[#2ff5b3] p-1 rounded-full hover:bg-green-50 hover:underline"
                   title="Marcar como Entregado"
                 >
                   <Icon
@@ -702,6 +750,29 @@ export default function CasosPage() {
                   />
                 </button>
               )}
+
+              <button
+                onClick={() => {
+                  setPrintCaseData(cell.row.original);
+                  setIsPrintModalOpen(true);
+                }}
+                className="text-color1/90 p-1 rounded-full hover:bg-color4 hover:underline"
+                title="Generar Orden de Laboratorio"
+              >
+                <Icon icon="fluent:re-order-16-filled" width={20} height={20} />
+              </button>
+
+              <button
+                onClick={() => handleDelete(cell.row.original.id)}
+                className="text-gray-300 p-1 rounded-full hover:bg-red-100 hover:text-red-600 hover:underline"
+                title="Eliminar"
+              >
+                <Icon
+                  icon="material-symbols:delete-outline"
+                  width={20}
+                  height={20}
+                />
+              </button>
             </div>
           );
         },
@@ -725,8 +796,11 @@ export default function CasosPage() {
       const value = curr.value;
       const isEmptyArray =
         Array.isArray(value) &&
-        value.every((item) => item === null || item === undefined || item === "");
-      const isEmptyString = value === "" || value === null || value === undefined;
+        value.every(
+          (item) => item === null || item === undefined || item === "",
+        );
+      const isEmptyString =
+        value === "" || value === null || value === undefined;
 
       if (!isEmptyArray && !isEmptyString) {
         acc[curr.id] = value;
@@ -755,7 +829,14 @@ export default function CasosPage() {
       showError("Error al cargar los datos");
     }
     setIsLoading(false);
-  }, [pagination.pageIndex, pagination.pageSize, sorting[0]?.id, sorting[0]?.desc, globalFilter, filtersObject]);
+  }, [
+    pagination.pageIndex,
+    pagination.pageSize,
+    sorting[0]?.id,
+    sorting[0]?.desc,
+    globalFilter,
+    filtersObject,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -793,127 +874,139 @@ export default function CasosPage() {
       <title>Casos</title>
 
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
-      <div style={{ height: 580, width: "100%" }}>
-        <div className="md:flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-lg md:text-2xl font-bold mb-2 md:mb-0">
-              Casos
-            </h1>
-          </div>
-          <div className="flex gap-3 relative">
-            {isThereLocalStorageFormData && (
-              <button
-                title="Restaurar formulario sin guardar"
-                className="hover:shadow-lg opacity-55 hover:opacity-100 hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
+        <div style={{ height: 580, width: "100%" }}>
+          <div className="md:flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-lg md:text-2xl font-bold mb-2 md:mb-0">
+                Casos
+              </h1>
+            </div>
+            <div className="flex gap-3 relative">
+              {isThereLocalStorageFormData && (
+                <button
+                  title="Restaurar formulario sin guardar"
+                  className="hover:shadow-lg opacity-55 hover:opacity-100 hover:bg-gray-100 flex gap-1 items-center text-gray-600 bg-gray-200 rounded-xl font-bold px-3"
+                  onClick={() => {
+                    const savedData = JSON.parse(
+                      localStorage.getItem("formData"),
+                    );
+                    setFormData(savedData);
+                    setSubmitString(
+                      JSON.parse(localStorage.getItem("submitString")),
+                    );
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <small className="text-gray-500">Recuperar</small>
+                  <Icon
+                    icon="line-md:backup-restore"
+                    className="w-6 h-6 text-gray-500"
+                  />
+                </button>
+              )}
+
+              <FuturisticButton
                 onClick={() => {
-                  const savedData = JSON.parse(
-                    localStorage.getItem("formData"),
-                  );
-                  setFormData(savedData);
-                  setSubmitString(
-                    JSON.parse(localStorage.getItem("submitString")),
-                  );
                   setIsModalOpen(true);
+                  if (submitString === "Actualizar") {
+                    setSubmitString("Registrar");
+                    setFormData(structuredClone(defaultFormData));
+                  }
                 }}
               >
-                <small className="text-gray-500">Recuperar</small>
-                <Icon
-                  icon="line-md:backup-restore"
-                  className="w-6 h-6 text-gray-500"
-                />
-              </button>
-            )}
-
-            <FuturisticButton
-              onClick={() => {
-                setIsModalOpen(true);
-                if (submitString === "Actualizar") {
-                  setSubmitString("Registrar");
-                  setFormData(structuredClone(defaultFormData));
-                }
-              }}
-            >
-              Registrar Caso
-            </FuturisticButton>
+                Registrar Caso
+              </FuturisticButton>
+            </div>
           </div>
-        </div>
 
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-          }}
-          title={
-            submitString === "Actualizar" ? "Actualizar Caso" : "Registrar Caso"
-          }
-          size="full"
-        >
-          <form
-            className="px-12 space-y-5 gap-7 w-full relative"
-            onSubmit={onSubmit}
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+            }}
+            title={
+              submitString === "Actualizar"
+                ? "Actualizar Caso"
+                : "Registrar Caso"
+            }
+            size="full"
           >
-            <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 grid grid-cols-12 gap-10">
-              <div className="grid grid-cols-12 gap-4 col-span-5">
-                {/* Campos base */}
-                {baseFormFields.map((field) => (
-                  <FormField
-                    key={field.name}
-                    {...field}
-                    value={formData[field.name]}
-                    onChange={handleChangeValue}
-                  />
-                ))}
-              </div>
-              {/* Campos de modelo */}
+            <form
+              className="px-12 space-y-5 gap-7 w-full relative"
+              onSubmit={onSubmit}
+            >
+              <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 grid grid-cols-12 gap-10">
+                <div className="grid grid-cols-12 gap-4 col-span-5">
+                  {/* Campos base */}
+                  {baseFormFields.map((field) => (
+                    <FormField
+                      key={field.name}
+                      {...field}
+                      value={formData[field.name]}
+                      onChange={handleChangeValue}
+                    />
+                  ))}
+                </div>
+                {/* Campos de modelo */}
 
-              <div className="col-span-3 space-y-3">
-                {modelFields.map((field) => (
-                  <FormField
-                    key={field.name}
-                    {...field}
-                    value={formData[field.name]}
-                    onChange={handleChangeValue}
-                  />
-                ))}
+                <div className="col-span-3 space-y-3">
+                  {modelFields.map((field) => (
+                    <FormField
+                      key={field.name}
+                      {...field}
+                      value={formData[field.name]}
+                      onChange={handleChangeValue}
+                    />
+                  ))}
+                </div>
+
+                {/* Campos condicionales (checkboxes con sus fechas) */}
+                <div className="col-span-4 space-y-4 ">
+                  {renderConditionalFields()}
+                </div>
               </div>
 
-              {/* Campos condicionales (checkboxes con sus fechas) */}
-              <div className="col-span-4 space-y-4 ">
-                {renderConditionalFields()}
+              <div className="col-span-12">
+                <div className="flex justify-end space-x-4 pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`px-16 py-3 rounded-md font-semibold hover:opacity-90 ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    } ${
+                      submitString === "Actualizar"
+                        ? "bg-sky-300 text-color1"
+                        : "bg-pink text-color1"
+                    }`}
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <CircularProgress size={20} color="inherit" />
+                        Procesando...
+                      </span>
+                    ) : (
+                      submitString
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            </form>
+          </Modal>
 
-            <div className="col-span-12">
-              <div className="flex justify-end space-x-4 pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`px-16 py-3 rounded-md font-semibold hover:opacity-90 ${
-                    loading ? "opacity-50 cursor-not-allowed" : ""
-                  } ${
-                    submitString === "Actualizar"
-                      ? "bg-sky-300 text-color1"
-                      : "bg-pink text-color1"
-                  }`}
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <CircularProgress size={20} color="inherit" />
-                      Procesando...
-                    </span>
-                  ) : (
-                    submitString
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-        </Modal>
+          <Modal
+            isOpen={isPrintModalOpen}
+            onClose={() => {
+              setIsPrintModalOpen(false);
+            }}
+            title="Orden de Laboratorio"
+            size="lg"
+          >
+            <PrintPage caseData={printCaseData} />
+          </Modal>
 
-        {!isModalOpen && (
           <div
             className="ag-theme-alpine ag-grid-no-border"
-            style={{ height: 500 }}
+            style={{ height: 500, display: isModalOpen ? "none" : "block" }}
           >
             <MaterialReactTable
               columns={columns}
@@ -926,19 +1019,16 @@ export default function CasosPage() {
               initialState={{
                 density: "compact",
                 showColumnFilters: true,
-                columnVisibility: {
-                  email: false,
-                  address: false,
-                  observation: false,
-                  origin: false,
-                },
+                columnVisibility: columnVisibility,
               }}
+              onColumnVisibilityChange={setColumnVisibility}
               state={{
                 pagination,
                 sorting,
                 columnFilters,
                 globalFilter,
                 isLoading,
+                columnVisibility,
               }}
               onPaginationChange={setPagination}
               onSortingChange={setSorting}
@@ -958,7 +1048,6 @@ export default function CasosPage() {
                 sx: { minWidth: "300px" },
                 variant: "outlined",
               }}
-
               enableColumnResizing={true}
               muiTableBodyRowProps={({ row }) => {
                 const statute = STATUTE_OPTIONS.find(
@@ -983,8 +1072,7 @@ export default function CasosPage() {
               }}
             />
           </div>
-        )}
-      </div>
+        </div>
       </LocalizationProvider>
     </>
   );
