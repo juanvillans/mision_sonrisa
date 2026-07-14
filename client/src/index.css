@@ -385,7 +385,7 @@ h5 {
     -20px -20px 60px #e1f4ff;
 }
 
-/* From Uiverse.io by abrahamcalsin */ 
+/* From Uiverse.io by abrahamcalsin */
 .button {
   position: relative;
   display: flex;
@@ -393,7 +393,8 @@ h5 {
   width: 100%;
   align-items: center;
   border-radius: 5px;
-  background: #1C3261;
+  background: #e27b86;
+
   font-family: "Montserrat", sans-serif;
   box-shadow: 0px 6px 24px 0px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -405,7 +406,8 @@ h5 {
   content: " ";
   width: 0%;
   height: 100%;
-  background: #DFB1C4;
+  background: #ccaf9a;
+
   position: absolute;
   transition: all 0.4s ease-in-out;
   right: 0;
@@ -431,7 +433,6 @@ h5 {
 }
 
 .button:hover span {
-  color: #1C3261;
   animation: scaleUp 0.3s ease-in-out;
 }
 
@@ -448,13 +449,14 @@ h5 {
     transform: scale(1);
   }
 }
- .without-arrows::-webkit-outer-spin-button,
- .without-arrows::-webkit-inner-spin-button {
-   -webkit-appearance: none !important;
-   margin: 0 !important;
- }
-  .without-arrows {
-    -moz-appearance: textfield !important;
-    appearance: textfield !important;
-    padding-right: 0 !important; /* Ajusta según tus necesidades */
-  }
+.without-arrows::-webkit-outer-spin-button,
+.without-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+.without-arrows {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+  padding-right: 0 !important; /* Ajusta según tus necesidades */
+}
+

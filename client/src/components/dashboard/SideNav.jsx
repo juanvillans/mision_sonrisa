@@ -9,7 +9,12 @@ import { NavLink, Link } from "react-router-dom";
 import { Icon } from "@iconify/react";
 
 const links = [
-
+  {
+    permission: true,
+    name: "Inicio",
+    href: "/dashboard",
+    icon: "hugeicons:home-09",
+  },
   {
     permission: true,
     name: "Casos",
@@ -44,19 +49,19 @@ export default function SideNav(props) {
 
   return (
     <nav
-      className="flex w-full bg-color1 h-full flex-col px-3 pr-1 py-1 md:py-4 md:px-4"
-      onMouseEnter={() => props.handleSidebarToggle()}
-      onMouseLeave={() => props.handleSidebarToggle()}
+      className="flex w-full bg-color3 h-full flex-col px-3 pr-1 py-1 md:py-4 md:px-4"
+      onMouseEnter={() => props.onMouseEnter()}
+      onMouseLeave={() => props.onMouseLeave()}
     >
 
       <Link
-        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-20 items-end justify-end rounded-md bg-gradient-to-b from-pink via-pink via-50% to-white to-50%   md:h-20 ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
+        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-10 md:h-12  items-end justify-end rounded-full border-4 border border-pink  bg-white to-50%   ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
         href="/"
       >
-        <div className="w-32 font-exo2 relative duration-150 text-white md:w-40 flex flex-row justify-between items-end">
+        <div className="w-32 font-exo2 relative duration-150 text-color1 md:w-40 flex flex-row justify-between items-end">
           <img
             src={misionSonrisaLogo}
-            className={`${props.isSidebarOpen ? 'w-16 h-16 relative top-5' : 'w-10 h-8'} logo w-12 duration-150 `}
+            className={`${props.isSidebarOpen ? 'w-16 h-16 relative top-5' : 'w-12 h-10'} logo w-12 duration-150 `}
             alt="logo del sistema"
           />
           
@@ -76,8 +81,8 @@ export default function SideNav(props) {
                 className={({ isActive }) =>
                   `flex h-[48px] duration-150 hover:text-color3 grow items-center relative justify-between gap-2  text-sm font-medium hover:bg-sky-100 md:flex-none md:justify-between pl-2 ${
                     isActive
-                      ? "bg-gray-50 activeLink text-pink font-bold rounded-2xl md:rounded-none  md:rounded-l-2xl"
-                      : "text-gray-50 hover:bg-white/10 hover:text-color4 rounded-full"
+                      ? "bg-gray-50 activeLink text-color1 font-bold rounded-2xl md:rounded-none  md:rounded-l-2xl"
+                      : "text-color1 hover:bg-white/10 hover:text-pink rounded-full"
                   }`
                 }
               >

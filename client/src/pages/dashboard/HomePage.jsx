@@ -4,6 +4,9 @@ import { ResponsivePie } from "@nivo/pie";
 import { Icon } from "@iconify/react";
 import FormField from "../../components/forms/FormField";
 import { Skeleton } from "@mui/material";
+import { casesAPI } from "../../services/api.js";
+
+const AGES_RANGE = ["0-4", "5-11", "12-14", "15-18", "19-34", "35-59", "60+"]; 
 
 const MyBar = React.memo(({ data }) => (
   <ResponsiveBar
@@ -72,6 +75,8 @@ const MyBar = React.memo(({ data }) => (
     barAriaLabel={(e) =>
       e.id + ": " + e.formattedValue + " in country: " + e.indexValue
     }
+    colors={['#E27B86', '#e4c8b4', '#BECFE1', '#C9EBF2', '#4e8888', '#BC7440', "#E4A5AD", "#8ca9ff"]}
+
   />
 ));
 const PieChart = React.memo(({ data, inPorcentage }) => (
@@ -92,6 +97,8 @@ const PieChart = React.memo(({ data, inPorcentage }) => (
       from: "color",
       modifiers: [["darker", 4]],
     }}
+    colors={['#E27B86', '#e4c8b4', '#BECFE1', '#C9EBF2', '#4e8888', '#BC7440', "#E4A5AD", "#8ca9ff"]}
+    colorBy="index"
   />
 ));
 
@@ -103,24 +110,24 @@ export default function HomePage() {
   const [end_date, setEndDate] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // async function fetchChartData() {
-  //   if (selectedPeriod === "range" && (!start_date || !end_date)) {
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     const res = await examsAPI.getChartData(selectedPeriod, {
-  //       start_date,
-  //       end_date,
-  //     });
-  //     setChartData(res.data);
-  //   } catch (e) {
-  //     console.error("Failed to fetch chart data", e);
-  //   }
-  //   setLoading(false);
-  // }
+  const fetchChartData = async () => {
+    if (selectedPeriod === "range" && (!start_date || !end_date)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await casesAPI.getStats();
+      setChartData(res.data?.data || res.data);
+    } catch (e) {
+      console.error("Failed to fetch chart data", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // fetchChartData();
+    fetchChartData();
   }, [selectedPeriod]);
 
   return (
@@ -178,11 +185,11 @@ export default function HomePage() {
         {chartData && !loading ? (
           <div className="md:grid space-y-4 grid-cols-1 md:grid-cols-4 gap-3 md:gap-6 mt-4">
             <div className="rounded-md p-4 md:p-7 neuphormism hover:shadow-none flex flex-col justify-between ">
-              <p>Total Exámenes realizados</p>
-              <b className=" text-gray-500 mt-auto text-right w-full ml-auto   flex justify-end items-end">
+              <p>Total Casos atendidos</p>
+              <b className=" text-pink mt-auto text-right w-full ml-auto   flex justify-end items-end">
                 <Icon
-                  icon="hugeicons:labs"
-                  className=" text-6xl block mb-2 text-color3"
+                  icon="streamline-ultimate:dentistry-tooth-jaws"
+                  className=" text-6xl p-1 block mb-3 mr-2 text-color3"
                 />
                 <span
                   className={
@@ -194,24 +201,7 @@ export default function HomePage() {
               </b>
             </div>
 
-            <div className="rounded-md p-4 md:p-7 neuphormism hover:shadow-none flex flex-col justify-between ">
-              <p>Total Pacientes atendidos</p>
-              <b className=" text-gray-500 mt-auto text-right w-full ml-auto   flex justify-end items-end">
-                <Icon
-                  icon="mdi:patient-outline"
-                  className=" text-6xl block mb-2 text-color3"
-                />
-                <span
-                  className={
-                    chartData?.analyses.total_patients > 999
-                      ? "text-6xl"
-                      : `text-9xl`
-                  }
-                >
-                  {chartData?.analyses.total_patients}
-                </span>
-              </b>
-            </div>
+          
 
             <div className="rounded-md p-4 md:p-7 min-h-[300px] relative col-span-2 neuphormism hover:shadow-none">
               <p>Procedencia de pacientes</p>
@@ -220,80 +210,45 @@ export default function HomePage() {
 
             <div className="rounded-md p-4 md:p-7 min-h-[300px] relative col-span-2 neuphormism hover:shadow-none">
               <p>Distribución de edades y género</p>
+
+              
               <MyBar data={chartData?.analyses.ageGenderDistribution} />
             </div>
 
-            <div className="rounded-md p-4 md:p-7 min-h-[300px] relative col-span-2 neuphormism hover:shadow-none">
-              <p>Tipo de exámenes realizados</p>
-              <PieChart data={chartData?.numberPerExamType} />
-            </div>
+        
 
-            <div className="col-span-4 ">
-              {Object.entries(chartData?.normalitiesTests).map(
-                ([exam_key, exam_value]) => (
-                  <div key={exam_key} className="mb-10">
-                    <h3 className="text-lg font-bold mb-4 ">{exam_key}</h3>
-                    <div className="grid md:grid-cols-2  lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-2 mt-4 neuphormism">
-                      {Object.entries(exam_value).map(
-                        ([test_key, arr_test_value]) => (
-                          <div
-                            key={test_key}
-                            className="rounded-md p-3 xl:p-5 min-h-[300px] relative col-span-1  hover:shadow-none"
-                          >
-                            <h4 className="text-center">{test_key}</h4>
-                            <PieChart
-                              data={arr_test_value}
-                              inPorcentage={true}
-                            />
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
 
             <div className="rounded-md p-4 md:p-7 min-h-[300px] relative col-span-2 neuphormism hover:shadow-none">
-              <p>Estado de examenes</p>
+              <p>Estatutos de casos</p>
               <PieChart
-                data={[
+                data={chartData?.statutes?.length ? chartData.statutes : [
                   {
-                    id: "validados",
-                    label: "Validados",
-                    value: chartData?.total.validated,
+                    id: "En proceso",
+                    label: "En proceso",
+                    value: chartData?.total?.validated || 0,
                   },
                   {
-                    id: "Sin validar",
-                    label: "Sin Validar",
-                    value: chartData?.total.not_validated,
+                    id: "Pulido/Terminado",
+                    label: "Pulido/Terminado",
+                    value: chartData?.total?.not_validated || 0,
+                  },
+                  {
+                    id: "Entregado",
+                    label: "Entregado",
+                    value: chartData?.total?.delivered || 0,
                   },
                 ]}
               />
             </div>
 
             <div className="rounded-md p-4 md:p-7 min-h-[300px] relative col-span-2 neuphormism hover:shadow-none">
-              <p>Mensaje de resultados validados</p>
+              <p>Tipo de prótesis</p>
               <PieChart
-                data={[
-                  {
-                    id: "Enviado",
-                    label: "Enviado",
-                    value: chartData?.analyses.message_sent,
-                  },
-                  {
-                    id: "No enviado",
-                    label: "No Enviado",
-                    value: chartData?.analyses.message_not_sent,
-                  },
-                  {
-                    id: "Leído",
-                    label: "Leído",
-                    value: chartData?.analyses.message_read,
-                  },
-                ]}
+                data={chartData?.by_prosthesis_type?.length ? chartData.by_prosthesis_type : []}
               />
             </div>
+
+           
           </div>
         ) : (
           <div className="md:grid space-y-4 grid-cols-1 md:grid-cols-4 gap-3 md:gap-6 mt-4">

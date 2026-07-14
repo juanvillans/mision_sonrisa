@@ -37,6 +37,7 @@ const getInitialVisibility = () => {
     address: false,
     observation: false,
     origin: false,
+    age: false,
   };
 };
 
@@ -63,9 +64,9 @@ const PROSTHESIS_TYPE_OPTIONS = [
 ];
 
 const STATUTE_OPTIONS = [
-  { value: "En proceso", label: "En proceso", color: "#DFB1C4" }, // pink
-  { value: "Pulido/Terminado", label: "Pulido/Terminado", color: "#3bbbf6 " }, // Azul
-  { value: "Entregado", label: "Entregado", color: "#2ff5b3" }, // verde
+  { value: "En proceso", label: "En proceso", color: "#E27B86" }, // pink
+  { value: "Pulido/Terminado", label: "Pulido/Terminado", color: "#e4c8b4 " }, // Azul
+  { value: "Entregado", label: "Entregado", color: "#BECFE1" }, // verde
 ];
 
 const TOOTH_COLOR_OPTIONS = [
@@ -86,6 +87,8 @@ const TOOTH_COLOR_OPTIONS = [
   { value: "D3", label: "D3", color: "#CEBFAF" },
   { value: "D4", label: "D4", color: "#CBBFAD" },
 ];
+
+const AGES_RANGE = ["0-4", "5-11", "12-14", "15-18", "19-34", "35-59", "60+"];
 
 const currentDate = new Date().toISOString().split("T")[0]; // Formato YYYY-MM-DD
 
@@ -629,6 +632,15 @@ export default function CasosPage() {
         filterSelectOptions: ["M", "F"],
       },
       {
+        accessorKey: "age",
+        header: "Edad",
+        size: 80,
+        enableColumnFilter: true,
+        enableSorting: true,
+        filterVariant: "select",
+        filterSelectOptions: AGES_RANGE,
+      },
+      {
         accessorKey: "phone",
         header: "Teléfono",
         size: 120,
@@ -680,7 +692,7 @@ export default function CasosPage() {
           if (original.statute === "Entregado") {
             return (
               <div
-                className="px-3 py-1 rounded-full text-sm font-bold text-black text-center"
+                className="px-3 py-0.5 rounded-full text-xs font-bold  text-black text-center"
                 style={{ background: statute?.color || "#6b7280" }}
               >
                 {original.statute}
@@ -691,15 +703,15 @@ export default function CasosPage() {
             {
               key: "is_polished_completed",
               label: "Pulido/Terminado",
-              color: "text-green-[#2ff5b3]",
+              color: "text-green-[#BECFE1]",
             },
             {
               key: "is_threaded_completed",
               label: "Roscado",
-              color: "text-[#DFB1C4]",
+              color: "text-[#E27B86]",
             },
-            { key: "is_rdm_completed", label: "RDM", color: "text-[#DFB1C4]" },
-            { key: "is_tdi_completed", label: "TDI", color: "text-[#DFB1C4]" },
+            { key: "is_rdm_completed", label: "RDM", color: "text-[#E27B86]" },
+            { key: "is_tdi_completed", label: "TDI", color: "text-[#E27B86]" },
           ];
 
           for (const stage of stages) {
@@ -721,7 +733,7 @@ export default function CasosPage() {
         accessorKey: "actions",
         enableColumnFilter: false,
         enableSorting: false,
-        size: 120,
+        size: 150,
         Cell: ({ cell }) => {
           return (
             <div className="flex gap-2">
@@ -740,7 +752,7 @@ export default function CasosPage() {
               {cell.row.original.statute == "Pulido/Terminado" && (
                 <button
                   onClick={() => handleMarkAsDelivered(cell.row.original.id)}
-                  className="text-[#2ff5b3] p-1 rounded-full hover:bg-green-50 hover:underline"
+                  className="text-[#BECFE1] p-1  rounded-full hover:bg-green-50 hover:underline"
                   title="Marcar como Entregado"
                 >
                   <Icon
@@ -1016,6 +1028,7 @@ export default function CasosPage() {
               manualSorting
               manualFiltering
               manualGlobalFilter
+              enableDensityToggle={false}
               initialState={{
                 density: "compact",
                 showColumnFilters: true,

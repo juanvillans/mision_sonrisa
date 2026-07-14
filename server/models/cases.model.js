@@ -1,5 +1,40 @@
 import { db } from "../database/postgre.js";
 
+const AGE_RANGES = [
+  { label: "0-4", min: 0, max: 4 },
+  { label: "5-11", min: 5, max: 11 },
+  { label: "12-14", min: 12, max: 14 },
+  { label: "15-18", min: 15, max: 18 },
+  { label: "19-34", min: 19, max: 34 },
+  { label: "35-59", min: 35, max: 59 },
+  { label: "60+", min: 60, max: null },
+];
+
+const parseAgeRange = (value) => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalizedValue = value.trim();
+  if (!normalizedValue) {
+    return null;
+  }
+
+  if (normalizedValue === "60+") {
+    return { min: 60, max: null };
+  }
+
+  const match = normalizedValue.match(/^(\d+)\s*-\s*(\d+)$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    min: Number(match[1]),
+    max: Number(match[2]),
+  };
+};
+
 class Case {
   constructor(data) {
     this.id = data.id;
@@ -109,6 +144,20 @@ class Case {
             const parsedValue = Number(value);
             if (!Number.isNaN(parsedValue)) {
               query = query.where('cases.id', parsedValue);
+            }
+          } else if (field === 'age') {
+            const ageRange = parseAgeRange(value);
+            if (ageRange) {
+              if (ageRange.max !== null) {
+                query = query.whereBetween('cases.age', [ageRange.min, ageRange.max]);
+              } else {
+                query = query.where('cases.age', '>=', ageRange.min);
+              }
+            } else {
+              const parsedValue = Number(value);
+              if (!Number.isNaN(parsedValue)) {
+                query = query.where('cases.age', parsedValue);
+              }
             }
           } else if (['number_of_models', 'number_of_tdi'].includes(field)) {
             const parsedValue = Number(value);
@@ -316,15 +365,85 @@ class Case {
       )
       .first();
 
-    // Get counts by type of prosthesis
     const prosthesisStats = await db('cases')
       .select('type_of_prosthesis')
       .count('* as count')
       .groupBy('type_of_prosthesis');
 
+    const originStats = await db('cases')
+      .select('origin')
+      .count('* as count')
+      .groupBy('origin')
+      .orderBy('origin');
+
+    const statuteStats = await db('cases')
+      .select('statute')
+      .count('* as count')
+      .groupBy('statute')
+      .orderBy('statute');
+
+    const ageGenderRows = await db('cases')
+      .select('age', 'sex')
+      .whereNotNull('age')
+      .whereNotNull('sex');
+
+    const ageGenderDistribution = AGE_RANGES.map((range) => ({
+      age_range: range.label,
+      masculino: 0,
+      femenino: 0,
+    }));
+
+    ageGenderRows.forEach((row) => {
+      const numericAge = Number(row.age);
+      if (Number.isNaN(numericAge)) {
+        return;
+      }
+
+      const range = AGE_RANGES.find((item) => {
+        if (item.max === null) {
+          return numericAge >= item.min;
+        }
+        return numericAge >= item.min && numericAge <= item.max;
+      });
+
+      if (!range) {
+        return;
+      }
+
+      const bucket = ageGenderDistribution.find((item) => item.age_range === range.label);
+      if (!bucket) {
+        return;
+      }
+
+      if (row.sex === 'M') {
+        bucket.masculino += 1;
+      } else if (row.sex === 'F') {
+        bucket.femenino += 1;
+      }
+    });
+
     return {
-      ...stats,
-      by_prosthesis_type: prosthesisStats
+      total: {
+        total: Number(stats.total) || 0,
+      },
+      origins: originStats.map((item) => ({
+        id: item.origin || 'Sin especificar',
+        label: item.origin || 'Sin especificar',
+        value: Number(item.count) || 0,
+      })),
+      analyses: {
+        ageGenderDistribution,
+      },
+      statutes: statuteStats.map((item) => ({
+        id: item.statute || 'Sin especificar',
+        label: item.statute || 'Sin especificar',
+        value: Number(item.count) || 0,
+      })),
+      by_prosthesis_type: prosthesisStats.map((item) => ({
+        id: item.type_of_prosthesis || 'Sin especificar',
+        label: item.type_of_prosthesis || 'Sin especificar',
+        value: Number(item.count) || 0,
+      })),
     };
   }
 }

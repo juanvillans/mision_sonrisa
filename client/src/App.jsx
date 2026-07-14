@@ -11,7 +11,7 @@ import { setLogoutCallback } from './services/api';
 import { useAuth } from './context/AuthContext';
 
 // Lazy load heavy components
-
+const HomePage = lazy(() => import(/* webpackChunkName: "home" */ './pages/dashboard/HomePage'));
 const CasosPage = lazy(() => import(/* webpackChunkName: "examenes" */ './pages/dashboard/CasosPage'));
 const ImportPage = lazy(() => import(/* webpackChunkName: "import" */ './pages/dashboard/ImportPage'));
 import UsuariosPage from './pages/dashboard/UsuariosPage';
@@ -49,7 +49,9 @@ function AppContent() {
                 </ProtectedRoute>
               }
             >
-                <Route path="casos" element={
+              <Route index  element={<HomePage />} />
+              
+                <Route  path="casos" element={
                   <Suspense fallback={<PageLoader />}>
                     <CasosPage />
                   </Suspense>

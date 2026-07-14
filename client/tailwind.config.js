@@ -11,9 +11,9 @@ export default {
       colors: {
         "color1": "#011140",
         "color2": "#397373",
-        "color3": "#7897C8",
+        "color3": "#BECFE1",
         "color4": "#C9EBF2",
-        "pink": "#DFB1C4",
+        "pink": "#E27B86",
         "black": "#000000",
         "dark": "#161616",
         "white": "#FFFFFF",
@@ -31,6 +31,7 @@ export default {
         "binance": "#F3BA2F",
         "orange": "#be5c00",
         "theeth": "#CCAF9A",
+        "newBlue": "#E27B86",
       },
       fontFamily: {
         'inter': ['"Inter"', 'sans-serif'],
