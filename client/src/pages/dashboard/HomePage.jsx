@@ -117,7 +117,12 @@ export default function HomePage() {
 
     setLoading(true);
     try {
-      const res = await casesAPI.getStats();
+      const params = { period: selectedPeriod };
+      if (selectedPeriod === "range") {
+        params.start_date = start_date;
+        params.end_date = end_date;
+      }
+      const res = await casesAPI.getStats(params);
       setChartData(res.data?.data || res.data);
     } catch (e) {
       console.error("Failed to fetch chart data", e);

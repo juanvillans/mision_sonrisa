@@ -41,7 +41,7 @@ export const sendInvitationEmail = function (recipient, invitationToken, url) {
         to: recipient.email,
         subject: "Bienvenido a Misión Sonrisa - Activa tu cuenta",
         html: `
-            <img src="${process.env.APP_URL }/1x10.png}" alt="Misión Sonrisa" />
+            <img src="${process.env.APP_URL }/misionSonrisaLogo.png}" alt="Misión Sonrisa" />
             <h3>Bienvenido a nuestra plataforma, ${recipient.first_name}!</h3>
             <p>Tu cuenta ha sido creada. Por favor haz clic en el enlace a continuación para establecer tu contraseña y activar tu cuenta:</p>
             <p><a href="${activationLink}">Activar cuenta</a></p>

@@ -101,8 +101,8 @@ export const validateInvitationToken = catchAsync(async (req, res, next) => {
     }
     
     // Check if account is already activated
-    if (user.status === 'active') {
-      throw commonErrors.invalidInput("Account is already activated");
+    if (user.status !== 'pendiente') {
+      throw commonErrors.invalidInput("Tu cuenta ya ha sido activada");
     }
     
     // Store decoded token and user in request for later use

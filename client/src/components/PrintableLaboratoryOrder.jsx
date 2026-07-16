@@ -4,7 +4,6 @@ import { Icon } from "@iconify/react";
 import SecretrariaLogo from "../assets/secretaria_logo.png";
 import Latidos from "../assets/latidos.png";
 import FuturisticButton from "./FuturisticButton";
-import firmaDigital from "../assets/firmaDigital.png";
 import cintillo from "../assets/cintillo.jpeg";
 
 const TOOTH_COLOR_OPTIONS = [

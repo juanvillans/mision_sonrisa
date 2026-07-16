@@ -186,9 +186,9 @@ class User {
   }
 
   // Delete user
-  async delete() {
+  static async delete(id) {
     try {
-      await db("users").where("id", this.id).del();
+      await db("users").where("id", id).del();
       return true;
     } catch (error) {
       throw new Error("Failed to delete user");

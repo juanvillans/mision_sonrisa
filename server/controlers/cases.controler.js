@@ -270,7 +270,8 @@ export const deleteCase = catchAsync(async (req, res, next) => {
  * Get cases statistics for dashboard
  */
 export const getCasesStats = catchAsync(async (req, res, next) => {
-  const stats = await Case.getStats();
+  const { period, start_date, end_date } = req.query;
+  const stats = await Case.getStats({ period, start_date, end_date });
 
   res.status(200).json({
     status: 'success',

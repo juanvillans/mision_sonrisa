@@ -127,7 +127,7 @@ export const casesAPI = {
   deleteCase: (id) => api.delete(`/cases/${id}`),
   
   // Obtener estadísticas para el dashboard
-  getStats: () => api.get("/cases/stats"),
+  getStats: (params) => api.get("/cases/stats", { params }),
   
   // Obtener todos los orígenes únicos
   getOrigins: () => api.get("/cases/origins"),

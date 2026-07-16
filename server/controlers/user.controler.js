@@ -33,12 +33,12 @@ export const createUser = catchAsync(async (req, res, next) => {
       throw commonErrors.alreadyExists("User");
     }
     
-    // Create the user (always in pending status, no password)
+    // Create the user (always in pendiente status, no password)
     const user = await User.create({
       full_name,
       is_admin,
       email,
-      status: "pending",
+      status: "pendiente",
     });
 
     try {
@@ -155,4 +155,19 @@ export const updateUser = catchAsync(async (req, res, next) => {
   }
 });
 
+export const deleteUser = catchAsync(async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      throw commonErrors.notFound("User");
+    }
+    await User.delete(req.params.id);
+    res.status(200).json({
+      status: "success",
+      message: "Usuario eliminado con éxito",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 

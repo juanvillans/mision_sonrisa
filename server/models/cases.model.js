@@ -355,8 +355,41 @@ class Case {
    * Get statistics for dashboard
    * @returns {Promise<Object>}
    */
-  static async getStats() {
-    const stats = await db('cases')
+  static async getStats({ period, start_date, end_date } = {}) {
+    const queryBase = db('cases');
+
+    if (period === 'range' && start_date && end_date) {
+      const startDate = new Date(start_date);
+      const endDate = new Date(end_date);
+
+      if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        queryBase.whereBetween('creation_date', [startDate, endDate]);
+      }
+    } else if (period === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      queryBase.where('creation_date', '>=', today);
+    } else if (period === 'this_week') {
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      queryBase.where('creation_date', '>=', startOfWeek);
+    } else if (period === 'this_month') {
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      queryBase.where('creation_date', '>=', startOfMonth);
+    } else if (period === 'this_year') {
+      const today = new Date();
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      startOfYear.setHours(0, 0, 0, 0);
+      queryBase.where('creation_date', '>=', startOfYear);
+    }
+
+    const stats = await queryBase.clone()
       .select(
         db.raw('COUNT(*) as total'),
         db.raw(`COUNT(*) FILTER (WHERE statute = 'En proceso') as in_process`),
@@ -365,24 +398,24 @@ class Case {
       )
       .first();
 
-    const prosthesisStats = await db('cases')
+    const prosthesisStats = await queryBase.clone()
       .select('type_of_prosthesis')
       .count('* as count')
       .groupBy('type_of_prosthesis');
 
-    const originStats = await db('cases')
+    const originStats = await queryBase.clone()
       .select('origin')
       .count('* as count')
       .groupBy('origin')
       .orderBy('origin');
 
-    const statuteStats = await db('cases')
+    const statuteStats = await queryBase.clone()
       .select('statute')
       .count('* as count')
       .groupBy('statute')
       .orderBy('statute');
 
-    const ageGenderRows = await db('cases')
+    const ageGenderRows = await queryBase.clone()
       .select('age', 'sex')
       .whereNotNull('age')
       .whereNotNull('sex');

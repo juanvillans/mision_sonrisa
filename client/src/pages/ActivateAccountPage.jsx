@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authAPI } from "../services/api";
 import { useFeedback } from "../context/FeedbackContext";
 import { Icon } from "@iconify/react";
-import logo1x10 from "../assets/1x10.png";
+import misionSonrisaLogo from "../assets/misionSonrisaLogo.png";
 import secretariaLogo from "../assets/secretaria_logo.png";
 
 export default function ActivateAccountPage() {
@@ -23,7 +23,6 @@ export default function ActivateAccountPage() {
 
   const pathname = window.location.pathname; 
 
-  console.log(pathname);
 
   // Verify token on component mount
   useEffect(() => {
@@ -153,7 +152,7 @@ export default function ActivateAccountPage() {
     <>
       <div className="flex gap-3 items-center justify-between py-3 md:absolute w-full px-10">
         <div className="flex gap-3 items-center">
-          <img src={logo1x10} className="w-10 md:w-16 h-max" alt=" logo" />
+          <img src={misionSonrisaLogo} className="w-10 md:w-16 h-max" alt=" logo" />
           <span className="text-2xl font-exo2 font-bold text-color1">Misión Sonrisa</span>
         </div>
         <img

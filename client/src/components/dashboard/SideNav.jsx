@@ -1,5 +1,4 @@
 // import secretariaLogo from "../../assets/secretaria_logo.png";
-import logo1x10 from "../../assets/1x10.png";
 import misionSonrisaLogo from "../../assets/misionSonrisaLogo.png";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
@@ -23,7 +22,6 @@ const links = [
   },
 
   {
-    permission: true,
     name: "Usuarios",
     href: "/dashboard/usuarios",
     icon: "proicons:key",
@@ -45,7 +43,6 @@ export default function SideNav(props) {
   }
 
   const { user } = useAuth();
-
 
   return (
     <nav
@@ -103,14 +100,14 @@ export default function SideNav(props) {
           <button
             onClick={handleLogout}
             title="Cerrar sesión"
-            className=" flex text-white text-opacity-50 h-[48px] grow items-center justify-center gap-2 rounded-md  text-sm font-medium hover:bg-sky-100 hover:text-pink md:flex-none md:justify-start md:p-2 md:px-1"
+            className=" flex text-color1 text-opacity-50 h-[48px] grow items-center justify-center gap-2 rounded-md  text-sm font-medium hover:bg-sky-100 hover:text-pink md:flex-none md:justify-start md:p-2 md:px-1"
           >
             <Icon icon="tabler:logout" width="24" height="24" />
             {props.isSidebarOpen ? (
               <span className="sr-only">Cerrar sesión</span>
             ) : null}
           </button>
-          <p className="text-xs text-left text-opacity-55  text-white ">
+          <p className="text-xs text-left text-opacity-55  text-color1 ">
             {props.isSidebarOpen ? user?.full_name : null}
           </p>
         </div>

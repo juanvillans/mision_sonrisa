@@ -104,6 +104,12 @@ export const activateAccount = catchAsync(async(req, res, next) => {
        password: hashedPassword,
        status: "activo"
      });
+
+     // Blacklist invitation token after successful activation
+     const invitationToken = req.query.token || req.body.token;
+     if (invitationToken) {
+       tokenBlacklist.add(invitationToken);
+     }
      
      res.status(200).json({
        status: "success",
@@ -143,6 +149,11 @@ export const changePassword = catchAsync(async (req, res, next) => {
     
     // Update user with new password
     await User.updateById(user.id, { password: hashedPassword });
+
+    // Blacklist the current login token after password change
+    if (req.token) {
+      tokenBlacklist.add(req.token);
+    }
     
     res.status(200).json({
       status: "success",

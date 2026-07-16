@@ -833,7 +833,6 @@ export default function CasosPage() {
         search: globalFilter,
         filters: JSON.stringify(filtersObject),
       });
-      console.log({ res });
       setData(res.data.cases);
       setRowCount(res.data.pagination.total);
     } catch (e) {

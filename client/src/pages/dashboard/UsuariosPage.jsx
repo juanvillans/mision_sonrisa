@@ -5,6 +5,7 @@ import Modal from "../../components/Modal";
 import FuturisticButton from "../../components/FuturisticButton";
 import {MaterialReactTable} from 'material-react-table';
 import { ReusableForm } from "../../components/forms";
+import { useFeedback } from "../../context/FeedbackContext.jsx";
 
 
 // En las versiones más recientes, no necesitas registrar módulos para funcionalidades básicas
@@ -14,6 +15,8 @@ import { ReusableForm } from "../../components/forms";
 
 export default function UsuariosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { showError, showSuccess, showInfo } = useFeedback();
+  
   const defaultFormData = {
     email: "",
     full_name: "",
@@ -84,6 +87,7 @@ export default function UsuariosPage() {
 
       setIsModalOpen(false);
       fetchData();
+
     } catch (error) {
       throw new Error(
         error ||
@@ -91,6 +95,23 @@ export default function UsuariosPage() {
       );  
     }
   };
+
+  const onDelete = async (userId) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+      return;
+    }
+    try {
+      await usersAPI.deleteUser(userId);
+
+      fetchData();
+      showSuccess("Operación completada con éxito");
+
+    } catch (error) {
+      throw new Error(
+        error || "Error al eliminar el usuario."
+      );
+    }
+  }
 
   const columns = useMemo( () => [
     {
@@ -118,10 +139,10 @@ export default function UsuariosPage() {
     },
 
     {
-      accessorKey: "email_verified_status",
+      accessorKey: "status",
       header: "Estado",
       size: 180,
-      Cell: ({ cell }) => cell.getValue() ? <Icon className="text-color2" icon="iconamoon:check-fill" width={20} height={20} /> :  <Icon className="text-red-300" icon="line-md:close" width={18} height={17} />,
+      Cell: ({ cell }) => cell.getValue() == "activo" ? <Icon className="text-color2" icon="iconamoon:check-fill" width={20} height={20} /> :  <Icon className="text-red-300" icon="line-md:close" width={18} height={17} />,
     },
     {
       header: "Acciones",
@@ -147,8 +168,7 @@ export default function UsuariosPage() {
 
           <button
             onClick={() => {
-              usersAPI.deleteUser(row.original.id);
-              fetchData();
+              onDelete(row.original.id);
             }}
             className="mx-1 p-1 hover:p-2 duration-75 text-gray-500 hover:bg-red-100 hover:text-red-500 rounded-full"
 
