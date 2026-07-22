@@ -21,6 +21,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/es"; // Para cambiar el calendario a español
 
 import PrintPage from "../../components/PrintableLaboratoryOrder.jsx";
+import OrdenDeEntrega from "../../components/PrintableOrdenDeEntrega.jsx";
 
 const getInitialVisibility = () => {
   const savedVisibility = localStorage.getItem("cases_column_visibility");
@@ -130,6 +131,8 @@ export default function CasosPage() {
   const { showError, showSuccess, showInfo } = useFeedback();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isPrintOrdenDeEntregaOpen, setIsPrintOrdenDeEntregaOpen] =
+    useState(false);
   const [printCaseData, setPrintCaseData] = useState(null);
   const [origins, setOrigins] = useState([]);
   const [prosthesisTypes, setProsthesisTypes] = useState([]);
@@ -244,7 +247,7 @@ export default function CasosPage() {
       {
         name: "phone",
         label: "Teléfono",
-        type: "text",
+        type: "tel",
         className: "col-span-6",
         required: true,
       },
@@ -299,14 +302,14 @@ export default function CasosPage() {
       {
         checkbox: "is_threaded_completed",
         dateField: "threaded_date",
-        label: "Roscado",
-        checkboxLabel: "Roscado",
+        label: "Enfilado",
+        checkboxLabel: "Enfilado",
       },
       {
         checkbox: "is_polished_completed",
         dateField: "polished_date",
-        label: "Pulido",
-        checkboxLabel: "Pulido",
+        label: "Tallado/Pulido",
+        checkboxLabel: "Tallado/Pulido",
       },
     ],
     [],
@@ -389,7 +392,7 @@ export default function CasosPage() {
 
       return (
         <div
-          className="grid grid-cols-12 items-center gap-1"
+          className="md:grid md:grid-cols-12 items-center gap-1"
           key={item.checkbox}
         >
           {/* Checkbox */}
@@ -397,7 +400,7 @@ export default function CasosPage() {
             name={item.checkbox}
             label={item.checkboxLabel}
             type="checkbox"
-            className="col-span-4"
+            className="col-span-5"
             value={formData[item.checkbox]}
             onChange={handleChangeValue}
             disabled={isDisabled}
@@ -422,7 +425,7 @@ export default function CasosPage() {
               name="number_of_tdi"
               label="Nro TDI"
               type="number"
-              className="col-span-3"
+              className="col-span-2"
               value={formData.number_of_tdi || 0}
               onChange={handleChangeValue}
               required={isChecked}
@@ -646,6 +649,36 @@ export default function CasosPage() {
         size: 120,
         enableColumnFilter: true,
         enableSorting: true,
+        Cell: ({ cell }) => {
+          const number = cell.getValue();
+          return (
+            <p className="flex group gap-2">
+              <a
+                target="_blank"
+                href={`https://wa.me/${(() => {
+                      let phoneNumber = number.replace(/[ -]/g, "");
+                      if (!phoneNumber || phoneNumber.length < 9) return "";
+                      // If number doesn't start with country code, add Venezuelan code
+                      if (
+                        !phoneNumber.startsWith("+") &&
+                        !phoneNumber.startsWith("58")
+                      ) {
+                        phoneNumber = "58" + phoneNumber;
+                      }
+                      // Remove + if present since WhatsApp API doesn't need it
+                      return phoneNumber.replace("+", "") || "";
+                    })()}?text=Hola `}
+                title="Enviar por WhatsApp"
+              >
+                <Icon
+                  icon="logos:whatsapp-icon"
+                  className="group-hover:block hidden  w-4 h-4"
+                ></Icon>
+              </a>
+              {number}
+            </p>
+          );
+        },
       },
       {
         accessorKey: "email",
@@ -692,7 +725,7 @@ export default function CasosPage() {
           if (original.statute === "Entregado") {
             return (
               <div
-                className="px-3 py-0.5 rounded-full text-xs font-bold  text-black text-center"
+                className="px-2  rounded-full text-xs font-semibold  text-black text-center"
                 style={{ background: statute?.color || "#6b7280" }}
               >
                 {original.statute}
@@ -703,11 +736,11 @@ export default function CasosPage() {
             {
               key: "is_polished_completed",
               label: "Pulido/Terminado",
-              color: "text-green-[#BECFE1]",
+              color: "bg-[#e4c8b4] px-1 py-0.5 rounded-full",
             },
             {
               key: "is_threaded_completed",
-              label: "Roscado",
+              label: "Enfilado",
               color: "text-[#E27B86]",
             },
             { key: "is_rdm_completed", label: "RDM", color: "text-[#E27B86]" },
@@ -717,7 +750,7 @@ export default function CasosPage() {
           for (const stage of stages) {
             if (original[stage.key]) {
               return (
-                <span className={`font-bold ${stage.color}`}>
+                <span className={`font-bold text-xs ${stage.color}`}>
                   {stage.label}
                 </span>
               );
@@ -760,6 +793,18 @@ export default function CasosPage() {
                     width={20}
                     height={20}
                   />
+                </button>
+              )}
+              {cell.row.original.statute == "Entregado" && (
+                <button
+                  onClick={() => {
+                    setPrintCaseData(cell.row.original);
+                    setIsPrintOrdenDeEntregaOpen(true);
+                  }}
+                  className="text-[#BECFE1]  p-1 rounded-full hover:bg-color4 hover:underline"
+                  title="Generar Orden de Entrega"
+                >
+                  <Icon icon="streamline-block:content-confirm-file" width={17} height={17} />
                 </button>
               )}
 
@@ -943,11 +988,11 @@ export default function CasosPage() {
             size="full"
           >
             <form
-              className="px-12 space-y-5 gap-7 w-full relative"
+              className="md:px-12 space-y-5 gap-7 w-full relative"
               onSubmit={onSubmit}
             >
-              <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 grid grid-cols-12 gap-10">
-                <div className="grid grid-cols-12 gap-4 col-span-5">
+              <div className="space-y-3 z-10 md:sticky top-0 h-max mb-24 grid md:grid-cols-12 gap-10">
+                <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-12 gap-4 col-span-5">
                   {/* Campos base */}
                   {baseFormFields.map((field) => (
                     <FormField
@@ -960,7 +1005,7 @@ export default function CasosPage() {
                 </div>
                 {/* Campos de modelo */}
 
-                <div className="col-span-3 space-y-3">
+                <div className="col-span-6 md:col-span-3 space-y-3">
                   {modelFields.map((field) => (
                     <FormField
                       key={field.name}
@@ -1010,9 +1055,20 @@ export default function CasosPage() {
               setIsPrintModalOpen(false);
             }}
             title="Orden de Laboratorio"
-            size="lg"
+            size="xl"
           >
             <PrintPage caseData={printCaseData} />
+          </Modal>
+
+          <Modal
+            isOpen={isPrintOrdenDeEntregaOpen}
+            onClose={() => {
+              setIsPrintOrdenDeEntregaOpen(false);
+            }}
+            title="Orden de Entrega"
+            size="xl"
+          >
+            <OrdenDeEntrega caseData={printCaseData} />
           </Modal>
 
           <div

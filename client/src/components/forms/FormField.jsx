@@ -10,6 +10,21 @@ import {
 } from "@mui/material";
 import React from "react"; // Import React for React.memo
 
+// Phone formatter function
+const formatPhoneNumber = (value) => {
+  if (!value) return value;
+
+  // Remove all non-digits
+  const phoneNumber = value.replace(/[^\d]/g, "");
+
+  // Format based on length
+  if (phoneNumber.length < 4) return phoneNumber;
+  if (phoneNumber.length < 7) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+  }
+  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+};
+
 const FormField = React.memo(function FormField({
   type = "text",
   name,
@@ -30,6 +45,22 @@ const FormField = React.memo(function FormField({
   labels, // Extract labels to prevent passing to TextField
   ...props
 }) {
+
+  // Handle phone number formatting
+  const handlePhoneChange = (e) => {
+    const formattedValue = formatPhoneNumber(e.target.value);
+    // Create a synthetic event with the formatted value
+    const syntheticEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        name: e.target.name,
+        value: formattedValue,
+      },
+    };
+    onChange(syntheticEvent);
+  };
+
   if (type === "checkbox") {
     const checkboxId = `checkbox-${name}`;
     return (
@@ -95,7 +126,39 @@ const FormField = React.memo(function FormField({
         </FormControl>
       </div>
     );
-  }
+  }  else if (type === "tel" || type === "phone") {
+    // Phone number input
+    return (
+      <div className={className}>
+        <TextField
+          type="tel"
+          name={name}
+          label={label}
+          value={value || ""}
+          onChange={handlePhoneChange}
+          error={!!error}
+          helperText={error || helperText}
+          required={required}
+          disabled={disabled}
+          placeholder={placeholder || "XXX-XXX-XXXX"}
+          fullWidth={fullWidth}
+          size="small"
+          variant={variant}
+          InputProps={{
+            endAdornment: unit && (
+              <InputAdornment readOnly={readOnly} position="end">{unit}</InputAdornment>
+            ),
+          }}
+          inputProps={{
+            maxLength: 12, // XXX-XXX-XXXX = 12 characters
+            pattern: "[0-9-]*",
+            ...props.inputProps,
+          }}
+          {...props}
+        />
+      </div>
+    );
+  } 
 
   return (
     <div className={className}>

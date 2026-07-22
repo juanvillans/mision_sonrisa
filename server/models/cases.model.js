@@ -64,6 +64,7 @@ class Case {
     this.polished_date = data.polished_date;
     this.statute = data.statute;
     this.observation = data.observation;
+    this.delivered_at = data.delivered_at;
     
     // Timestamps
     this.created_at = data.created_at;
@@ -112,7 +113,8 @@ class Case {
         db.raw('to_char(cases.polished_date, \'YYYY-MM-DD\') as polished_date_formatted'),
         db.raw('to_char(cases.birth_date, \'YYYY-MM-DD\') as birth_date_formatted'),
         db.raw('to_char(cases.created_at, \'YYYY-MM-DD HH24:MI:SS\') as created_at_formatted'),
-        db.raw('to_char(cases.updated_at, \'YYYY-MM-DD HH24:MI:SS\') as updated_at_formatted')
+        db.raw('to_char(cases.updated_at, \'YYYY-MM-DD HH24:MI:SS\') as updated_at_formatted'),
+        db.raw('to_char(cases.delivered_at, \'YYYY-MM-DD HH24:MI:SS\') as delivered_at_formatted')
       );
 
     // Apply global search across multiple fields
@@ -271,7 +273,8 @@ class Case {
         db.raw('to_char(cases.polished_date, \'YYYY-MM-DD\') as polished_date_formatted'),
         db.raw('to_char(cases.birth_date, \'YYYY-MM-DD\') as birth_date_formatted'),
         db.raw('to_char(cases.created_at, \'YYYY-MM-DD HH24:MI:SS\') as created_at_formatted'),
-        db.raw('to_char(cases.updated_at, \'YYYY-MM-DD HH24:MI:SS\') as updated_at_formatted')
+        db.raw('to_char(cases.updated_at, \'YYYY-MM-DD HH24:MI:SS\') as updated_at_formatted'),
+        db.raw('to_char(cases.delivered_at, \'YYYY-MM-DD HH24:MI:SS\') as delivered_at_formatted')
       )
       .where('cases.id', id);
 
@@ -303,12 +306,20 @@ class Case {
    * @returns {Promise<Case|null>}
    */
   static async update(id, caseData) {
+    const updateData = {
+      ...caseData,
+      updated_at: db.fn.now()
+    };
+
+    if (caseData?.statute === 'Entregado') {
+      updateData.delivered_at = db.fn.now();
+    } else if (caseData?.statute && caseData.statute !== 'Entregado' && caseData.delivered_at === undefined) {
+      updateData.delivered_at = null;
+    }
+
     const [updated] = await db("cases")
       .where("id", id)
-      .update({
-        ...caseData,
-        updated_at: db.fn.now()
-      })
+      .update(updateData)
       .returning("*");
 
     return updated ? new Case(updated) : null;

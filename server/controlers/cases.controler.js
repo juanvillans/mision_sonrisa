@@ -235,7 +235,7 @@ export const updateCase = catchAsync(async (req, res, next) => {
 /* Mark case as delivered  (patch) */
 export const markCaseAsDelivered = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const updatedCase = await Case.update(id, { statute: 'Entregado' });
+  const updatedCase = await Case.update(id, { statute: 'Entregado', delivered_at: new Date() });
 
   if (!updatedCase) {
     throw commonErrors.notFound('Caso no encontrado');
@@ -325,7 +325,10 @@ export const bulkUpdateStatus = catchAsync(async (req, res, next) => {
 
   // Update all cases
   const updatePromises = ids.map(id => 
-    Case.update(id, { statute })
+    Case.update(id, {
+      statute,
+      ...(statute === 'Entregado' ? { delivered_at: new Date() } : { delivered_at: null })
+    })
   );
 
   const results = await Promise.all(updatePromises);

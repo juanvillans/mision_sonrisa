@@ -95,6 +95,8 @@ export async function up(knex) {
           enumName: "statute_enum",
         })
         .notNullable();
+      
+      
 
       // Timestamps
       table
