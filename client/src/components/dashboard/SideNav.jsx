@@ -1,5 +1,5 @@
 // import secretariaLogo from "../../assets/secretaria_logo.png";
-import misionSonrisaLogo from "../../assets/misionSonrisaLogo.png";
+import misionSonrisaApp from "../../assets/misionSonrisaApp.png";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
 import { useState } from "react";
@@ -52,12 +52,12 @@ export default function SideNav(props) {
     >
 
       <Link
-        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-10 md:h-12  items-end justify-end rounded-full border-4 border border-pink  bg-white to-50%   ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
+        className={`duration-150 hidden  mb-4 font-exo2 md:flex h-10 md:h-12  items-end justify-end rounded-full    ${props.isSidebarOpen ? 'p-4' : 'p-1'}`}
         href="/"
       >
         <div className="w-32 font-exo2 relative duration-150 text-color1 md:w-40 flex flex-row justify-between items-end">
           <img
-            src={misionSonrisaLogo}
+            src={misionSonrisaApp}
             className={`${props.isSidebarOpen ? 'w-16 h-16 relative top-5' : 'w-12 h-10'} logo w-12 duration-150 `}
             alt="logo del sistema"
           />
